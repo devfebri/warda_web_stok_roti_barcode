@@ -118,6 +118,7 @@ class CheesecakeController extends Controller
             $post->nama = $request->nama;
             $post->ukuran = $request->ukuran;
             $post->deskripsi = $request->deskripsi;
+            $post->jumlah = $request->jumlah;
             $post->harga = $request->harga;
             $post->tanggal_dibuat = $request->tanggal_dibuat;
             $post->gambar = 'storage/cheesecake/' . auth()->user()->username . '/' . $filename;
