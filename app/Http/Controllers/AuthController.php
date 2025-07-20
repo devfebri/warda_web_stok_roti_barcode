@@ -22,9 +22,9 @@ class AuthController extends Controller
         // dd($request->all());
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password]) ) {
             // dd(Auth::user()->role);
-            return redirect(route(auth()->user()->role . '_dashboard'))->with('pesan', 'Selamat datang kembali "' . auth()->user()->name . '"');
+            return redirect(route(auth()->user()->role . '_cheesecake'))->with('pesan', 'Selamat datang kembali "' . auth()->user()->name . '"');
         } else {
-            return redirect('/login')->with('gagal', 'Periksa Username dan Password anda');
+            return redirect('/')->with('gagal', 'Periksa Username dan Password anda');
         }
     }
 
@@ -54,7 +54,7 @@ class AuthController extends Controller
     public function logout(Request $request) : RedirectResponse
     {
         Auth::logout();
-        return redirect('/login');
+        return redirect('/');
     }
 
 }

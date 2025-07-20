@@ -42,4 +42,12 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function getAvatar()
+    {
+        if (!$this->avatar) {
+            return asset('storage/avatar/default.png');
+        }
+        return asset('storage/avatar/' . auth()->user()->username . '/' . $this->avatar);
+    }
 }
