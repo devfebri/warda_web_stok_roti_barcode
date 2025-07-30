@@ -47,6 +47,11 @@
                             <li class="list-group-item"><strong>Ukuran:</strong> {{ $cheesecake->ukuran }}</li>
                             <li class="list-group-item"><strong>Deskripsi:</strong> {{ $cheesecake->deskripsi }}</li>
                             <li class="list-group-item"><strong>Tanggal Dibuat:</strong> {{ \Carbon\Carbon::parse($cheesecake->tanggal_dibuat)->format('d M Y') }}</li>
+                            <li class="list-group-item">
+                                <strong>Tanggal Expired:</strong>
+                                {{ \Carbon\Carbon::parse($cheesecake->tanggal_dibuat)->addDays(3)->format('d M Y') }}
+                            </li>
+
                             <li class="list-group-item"><strong>Jumlah:</strong> {{ $cheesecake->jumlah }}</li>
                             <li class="list-group-item">
                                 <strong>Harga:</strong>
