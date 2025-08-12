@@ -94,6 +94,66 @@
             opacity: 0 !important;
         }
 
+        /* Custom Styling */
+        .border-left-primary {
+            border-left: 4px solid #667eea !important;
+        }
+
+        .border-left-success {
+            border-left: 4px solid #28a745 !important;
+        }
+
+        .border-left-info {
+            border-left: 4px solid #17a2b8 !important;
+        }
+
+        .border-left-warning {
+            border-left: 4px solid #ffc107 !important;
+        }
+
+        .text-primary {
+            color: #667eea !important;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(45deg, #764ba2, #667eea);
+        }
+
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .sidebar-inner .has-arrow:after {
+            border: solid;
+            border-width: 0 2px 2px 0;
+            display: inline-block;
+            padding: 3px;
+            transform: rotate(-45deg);
+            -webkit-transform: rotate(-45deg);
+            float: right;
+            margin-top: 8px;
+            margin-right: 10px;
+        }
+
+        .sidebar-inner ul ul {
+            display: none;
+            padding-left: 20px;
+        }
+
+        .sidebar-inner .has-arrow.active:after {
+            transform: rotate(45deg);
+            -webkit-transform: rotate(45deg);
+        }
+
+        .sidebar-inner .has-arrow.active + ul {
+            display: block;
+        }
     </style>
 
 
@@ -228,8 +288,33 @@
 
         setInterval(refreshTime, 1000);
 
-        
+        // Sidebar dropdown functionality
+        $(document).ready(function() {
+            $('.has-arrow').click(function(e) {
+                e.preventDefault();
+                $(this).toggleClass('active');
+                $(this).next('ul').slideToggle();
+            });
 
+            // Auto expand if current page is in submenu
+            $('.has-arrow').each(function() {
+                var $submenu = $(this).next('ul');
+                if ($submenu.find('a').hasClass('active')) {
+                    $(this).addClass('active');
+                    $submenu.show();
+                }
+            });
+
+            // Mark current menu as active
+            var currentUrl = window.location.href;
+            $('#sidebar-menu a').each(function() {
+                if ($(this).attr('href') === currentUrl) {
+                    $(this).addClass('active');
+                    $(this).parents('ul').show();
+                    $(this).parents('ul').prev('.has-arrow').addClass('active');
+                }
+            });
+        });
     </script>
 
 

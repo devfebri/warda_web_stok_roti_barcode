@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CheesecakeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\RotiController;
 use App\Http\Middleware\BakerMiddleware;
 use App\Http\Middleware\KepalaTokoMiddleware;
@@ -19,10 +20,16 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/cheesecake/open/{id}', [CheesecakeController::class, 'open'])->name('cheesecakeopen');
 
 Route::prefix('pimpinan')->middleware(PimpinanMiddleware::class)->name('pimpinan_')->group(function () {
-    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    // Dashboard
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    
+    // Laporan
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::get('/laporan/harian', [LaporanController::class, 'harian'])->name('laporan_harian');
+    Route::get('/laporan/bulanan', [LaporanController::class, 'bulanan'])->name('laporan_bulanan');
+    Route::get('/laporan/tahunan', [LaporanController::class, 'tahunan'])->name('laporan_tahunan');
+    Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan_export');
 });
 
 Route::prefix('baker')->middleware(BakerMiddleware::class)->name('baker_')->group(function () {
@@ -36,5 +43,7 @@ Route::prefix('baker')->middleware(BakerMiddleware::class)->name('baker_')->grou
 });
 
 Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepalatoko_')->group(function () {
-    // Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // Dashboard dan view produk
+    Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
+    Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
 });

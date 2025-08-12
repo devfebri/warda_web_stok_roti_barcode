@@ -17,16 +17,41 @@
            @if( auth()->user()->role == 'pimpinan')
             <li>
                 <a href="{{ route('pimpinan_cheesecake') }}" class="waves-effect">
-
                     <i class="mdi mdi-view-dashboard"></i>
                     <span> Dashboard </span>
                 </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);" class="has-arrow waves-effect">
+                    <i class="mdi mdi-chart-line"></i>
+                    <span> Laporan </span>
+                </a>
+                <ul class="list-unstyled">
+                    <li><a href="{{ route('pimpinan_laporan') }}">Dashboard Laporan</a></li>
+                    <li><a href="{{ route('pimpinan_laporan_harian') }}">Laporan Harian</a></li>
+                    <li><a href="{{ route('pimpinan_laporan_bulanan') }}">Laporan Bulanan</a></li>
+                    <li><a href="{{ route('pimpinan_laporan_tahunan') }}">Laporan Tahunan</a></li>
+                </ul>
             </li>
             @elseif(auth()->user()->role == 'baker')
             <li>
                 <a href="{{ route('baker_cheesecake') }}" class="waves-effect">
                     <i class="mdi mdi-view-dashboard"></i>
                     <span> Dashboard </span>
+                </a>
+            </li>
+           
+            @elseif(auth()->user()->role == 'kepalatoko')
+            <li>
+                <a href="{{ route('kepalatoko_cheesecake') }}" class="waves-effect">
+                    <i class="mdi mdi-view-dashboard"></i>
+                    <span> Dashboard </span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('kepalatoko_cheesecake') }}" class="waves-effect">
+                    <i class="mdi mdi-eye"></i>
+                    <span> Lihat Produk </span>
                 </a>
             </li>
            @endif
