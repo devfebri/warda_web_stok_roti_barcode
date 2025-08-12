@@ -14,7 +14,7 @@
 
     <div id="sidebar-menu">
         <ul>
-           @if( auth()->user()->role == 'pimpinan')
+           @if(auth()->user()->role == 'pimpinan')
             <li>
                 <a href="{{ route('pimpinan_cheesecake') }}" class="waves-effect">
                     <i class="mdi mdi-view-dashboard"></i>
@@ -33,15 +33,15 @@
                     <li><a href="{{ route('pimpinan_laporan_tahunan') }}">Laporan Tahunan</a></li>
                 </ul>
             </li>
+            
             @elseif(auth()->user()->role == 'baker')
             <li>
                 <a href="{{ route('baker_cheesecake') }}" class="waves-effect">
                     <i class="mdi mdi-view-dashboard"></i>
-                    <span> Dashboard </span>
+                    <span> Dashboard Produksi </span>
                 </a>
             </li>
-           
-           
+            
             @elseif(auth()->user()->role == 'kepalatoko' || auth()->user()->role == 'karyawan')
             <li>
                 <a href="{{ route((auth()->user()->role).'_cheesecake') }}" class="waves-effect">
@@ -50,19 +50,17 @@
                 </a>
             </li>
             <li>
-                <a href="{{ route((auth()->user()->role).'_cheesecake') }}" class="waves-effect">
-                    <i class="mdi mdi-eye"></i>
-                    <span> Lihat Produk </span>
-                </a>
-            </li>
-            <li>
                 <a href="javascript:void(0);" class="has-arrow waves-effect">
                     <i class="mdi mdi-cash-register"></i>
                     <span> Transaksi </span>
                 </a>
                 <ul class="list-unstyled">
-                    <li><a href="{{ route((auth()->user()->role).'_transaksi_create') }}">Transaksi Baru</a></li>
-                    <li><a href="{{ route((auth()->user()->role).'_transaksi') }}">Riwayat Transaksi</a></li>
+                    <li><a href="{{ route((auth()->user()->role).'_transaksi_create') }}">
+                        <i class="mdi mdi-plus-circle"></i> Transaksi Baru
+                    </a></li>
+                    <li><a href="{{ route((auth()->user()->role).'_transaksi') }}">
+                        <i class="mdi mdi-history"></i> Riwayat Transaksi
+                    </a></li>
                 </ul>
             </li>
             <li>
@@ -71,8 +69,9 @@
                     <span> Manajemen Stok </span>
                 </a>
                 <ul class="list-unstyled">
-                    <li><a href="{{ route((auth()->user()->role).'_cheesecake') }}">Lihat Stok</a></li>
-                    {{-- <li><a href="#" onclick="alert('Fitur update stok akan segera tersedia')">Update Stok</a></li> --}}
+                    <li><a href="{{ route((auth()->user()->role).'_cheesecake') }}">
+                        <i class="mdi mdi-eye"></i> Lihat Stok Produk
+                    </a></li>
                 </ul>
             </li>
            @endif
