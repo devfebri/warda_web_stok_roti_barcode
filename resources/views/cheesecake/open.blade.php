@@ -283,7 +283,7 @@
 
                 <!-- Tombol Aksi -->
                 <div class="text-center mt-4">
-                    <a href="{{ url()->previous() }}" class="btn btn-custom mr-2">
+                    <a href="javascript:void(0)" onclick="goBack()" class="btn btn-custom mr-2">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     @if($cheesecake->qr_code && file_exists(public_path($cheesecake->qr_code)))
@@ -343,6 +343,36 @@
             // Debug log
             console.log('Detail page loaded successfully');
         });
+
+        function goBack() {
+            // Cek apakah ada history sebelumnya dan aman
+            var referrer = document.referrer;
+            var currentHost = window.location.host;
+            
+            if (referrer && 
+                referrer.includes(currentHost) && 
+                !referrer.includes('/api/') && 
+                !referrer.includes('.json') &&
+                !referrer.includes('/cheesecake/open/')) {
+                // Jika referrer aman dan dari host yang sama, gunakan history back
+                window.history.back();
+            } else {
+                // Fallback ke dashboard sesuai dengan parameter yang tersedia
+                @auth
+                    @if(auth()->user()->role == 'baker')
+                        window.location.href = '/baker/cheesecake';
+                    @elseif(auth()->user()->role == 'pimpinan')
+                        window.location.href = '/pimpinan/cheesecake';
+                    @elseif(auth()->user()->role == 'kepalatoko')
+                        window.location.href = '/kepalatoko/cheesecake';
+                    @else
+                        window.location.href = '/';
+                    @endif
+                @else
+                    window.location.href = '/';
+                @endauth
+            }
+        }
     </script>
 </body>
 
