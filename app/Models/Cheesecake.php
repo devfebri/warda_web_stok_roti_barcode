@@ -37,6 +37,12 @@ class Cheesecake extends Model
         return $this->belongsTo(User::class, 'baker_id');
     }
 
+    // Relasi dengan transaksi detail
+    public function transaksiDetails()
+    {
+        return $this->hasMany(TransaksiDetail::class);
+    }
+
     // Accessor untuk format harga
     public function getFormattedHargaAttribute()
     {

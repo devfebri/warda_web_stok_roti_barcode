@@ -5,6 +5,7 @@ use App\Http\Controllers\CheesecakeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\RotiController;
+use App\Http\Controllers\TransaksiController;
 use App\Http\Middleware\BakerMiddleware;
 use App\Http\Middleware\KepalaTokoMiddleware;
 use App\Http\Middleware\PimpinanMiddleware;
@@ -46,4 +47,28 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
     // Dashboard dan view produk
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    
+    // Transaksi Management
+    Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi');
+    Route::get('/transaksi/create', [TransaksiController::class, 'create'])->name('transaksi_create');
+    Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi_store');
+    Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])->name('transaksi_show');
+    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi_destroy');
+    Route::get('/product/{id}', [TransaksiController::class, 'getProduct'])->name('get_product');
+    Route::post('/scan-qr', [TransaksiController::class, 'getProductByQr'])->name('scan_qr');
+});
+
+// Alias routes untuk karyawan (redirect ke kepalatoko)
+Route::prefix('karyawan')->middleware(KepalaTokoMiddleware::class)->name('karyawan_')->group(function () {
+    Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
+    Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    
+    // Transaksi Management
+    Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi');
+    Route::get('/transaksi/create', [TransaksiController::class, 'create'])->name('transaksi_create');
+    Route::post('/transaksi/store', [TransaksiController::class, 'store'])->name('transaksi_store');
+    Route::get('/transaksi/{id}', [TransaksiController::class, 'show'])->name('transaksi_show');
+    Route::delete('/transaksi/{id}', [TransaksiController::class, 'destroy'])->name('transaksi_destroy');
+    Route::get('/product/{id}', [TransaksiController::class, 'getProduct'])->name('get_product');
+    Route::post('/scan-qr', [TransaksiController::class, 'getProductByQr'])->name('scan_qr');
 });

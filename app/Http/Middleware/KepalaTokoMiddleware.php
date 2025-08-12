@@ -17,7 +17,7 @@ class KepalaTokoMiddleware
     public function handle(Request $request, Closure $next): Response
     {
         if (Auth::check()) {
-            if (Auth::user()->role == 'kepalatoko') {
+            if (Auth::user()->role == 'kepalatoko' || Auth::user()->role == 'karyawan') {
                 return $next($request);
             } else {
                 return redirect(url('/'));

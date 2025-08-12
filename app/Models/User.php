@@ -50,4 +50,16 @@ class User extends Authenticatable
         }
         return asset('storage/avatar/' . auth()->user()->username . '/' . $this->avatar);
     }
+
+    // Relasi dengan cheesecake sebagai baker
+    public function cheesecakes()
+    {
+        return $this->hasMany(Cheesecake::class, 'baker_id');
+    }
+
+    // Relasi dengan transaksi sebagai kasir
+    public function transaksis()
+    {
+        return $this->hasMany(Transaksi::class, 'kasir_id');
+    }
 }

@@ -365,6 +365,8 @@
                         window.location.href = '/pimpinan/cheesecake';
                     @elseif(auth()->user()->role == 'kepalatoko')
                         window.location.href = '/kepalatoko/cheesecake';
+                    @elseif(auth()->user()->role == 'karyawan')
+                        window.location.href = '/karyawan/cheesecake';
                     @else
                         window.location.href = '/';
                     @endif
