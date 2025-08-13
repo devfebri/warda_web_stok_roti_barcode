@@ -2,52 +2,95 @@
 
 @section('css')
 <style>
-    .report-card {
+    .summary-card {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         border-radius: 15px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         transition: transform 0.3s;
+        padding: 25px;
+        margin-bottom: 20px;
     }
 
-    .report-card:hover {
+    .summary-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     }
 
-    .report-icon {
-        font-size: 3rem;
-        margin-bottom: 20px;
-    }
-
-    .card-gradient-1 {
+    .summary-card.card-info {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
-    .card-gradient-2 {
+    .summary-card.card-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+
+    .summary-card.card-warning {
         background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
 
-    .card-gradient-3 {
+    .summary-card.card-danger {
         background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
     }
 
-    .btn-report {
-        background: white;
-        color: #333;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 50px;
+    .summary-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.8;
+    }
+
+    .summary-value {
+        font-size: 2rem;
         font-weight: bold;
-        text-decoration: none;
+        margin-bottom: 5px;
+    }
+
+    .summary-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+
+    .report-card {
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        transition: transform 0.3s;
+        overflow: hidden;
+    }
+
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .btn-export {
+        background: linear-gradient(45deg, #e74c3c, #c0392b);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.85rem;
         transition: all 0.3s;
     }
 
-    .btn-report:hover {
-        background: #f8f9fa;
-        color: #333;
-        text-decoration: none;
-        transform: translateY(-2px);
+    .btn-export:hover {
+        background: linear-gradient(45deg, #c0392b, #a93226);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .btn-view {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 25px;
+        transition: all 0.3s;
+    }
+
+    .btn-view:hover {
+        background: linear-gradient(45deg, #2980b9, #1f618d);
+        color: white;
+        transform: translateY(-1px);
     }
 </style>
 @endsection
@@ -58,7 +101,7 @@
         <div class="row">
             <div class="col-sm-12">
                 <div class="page-title-box">
-                    <h4 class="page-title">Dashboard Laporan</h4>
+                    <h4 class="page-title">Dashboard Laporan Penjualan</h4>
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
                         <li class="breadcrumb-item active">Laporan</li>
@@ -67,140 +110,126 @@
             </div>
         </div>
 
+        <!-- Summary Cards -->
+        <div class="row">
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-card card-info">
+                    <div class="text-center">
+                        <div class="summary-icon">
+                            <i class="mdi mdi-calendar-today"></i>
+                        </div>
+                        <div class="summary-value">Rp {{ number_format($summary['penjualan_hari_ini'], 0, ',', '.') }}</div>
+                        <div class="summary-label">Penjualan Hari Ini</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-card card-success">
+                    <div class="text-center">
+                        <div class="summary-icon">
+                            <i class="mdi mdi-shopping-cart"></i>
+                        </div>
+                        <div class="summary-value">{{ number_format($summary['transaksi_hari_ini']) }}</div>
+                        <div class="summary-label">Transaksi Hari Ini</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-card card-warning">
+                    <div class="text-center">
+                        <div class="summary-icon">
+                            <i class="mdi mdi-calendar-month"></i>
+                        </div>
+                        <div class="summary-value">Rp {{ number_format($summary['penjualan_bulan_ini'], 0, ',', '.') }}</div>
+                        <div class="summary-label">Penjualan Bulan Ini</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <div class="summary-card card-danger">
+                    <div class="text-center">
+                        <div class="summary-icon">
+                            <i class="mdi mdi-calendar-year"></i>
+                        </div>
+                        <div class="summary-value">Rp {{ number_format($summary['penjualan_tahun_ini'], 0, ',', '.') }}</div>
+                        <div class="summary-label">Penjualan Tahun Ini</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Navigation -->
         <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title">
-                            <i class="mdi mdi-chart-line"></i> Sistem Pelaporan Produksi Cheesecake
+                            <i class="mdi mdi-chart-line"></i> Laporan Penjualan
                         </h4>
-                        <p class="card-subtitle mb-4">Pilih jenis laporan yang ingin Anda lihat</p>
+                        <p class="card-subtitle mb-4">Pilih jenis laporan yang ingin Anda lihat atau unduh</p>
 
-                        <div class="row mt-4">
+                        <div class="row">
                             <!-- Laporan Harian -->
                             <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="card report-card card-gradient-1">
+                                <div class="card report-card">
                                     <div class="card-body text-center">
-                                        <div class="report-icon">
-                                            <i class="mdi mdi-calendar-today"></i>
+                                        <div class="text-primary mb-3">
+                                            <i class="mdi mdi-calendar-today" style="font-size: 3rem;"></i>
                                         </div>
                                         <h5 class="card-title">Laporan Harian</h5>
-                                        <p class="card-text">Lihat produksi cheesecake per hari</p>
-                                        <a href="{{ route('pimpinan_laporan_harian') }}" class="btn btn-report">
-                                            <i class="mdi mdi-eye"></i> Lihat Laporan
-                                        </a>
+                                        <p class="card-text text-muted">Detail penjualan dan transaksi per hari dengan breakdown produk</p>
+                                        <div class="mt-3">
+                                            <a href="{{ route('laporan.harian') }}" class="btn btn-view">
+                                                <i class="mdi mdi-eye"></i> Lihat Laporan
+                                            </a>
+                                            <a href="{{ route('laporan.harian', ['export' => 'pdf']) }}" class="btn btn-export ml-2">
+                                                <i class="mdi mdi-file-pdf"></i> PDF
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Laporan Bulanan -->
                             <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="card report-card card-gradient-2">
+                                <div class="card report-card">
                                     <div class="card-body text-center">
-                                        <div class="report-icon">
-                                            <i class="mdi mdi-calendar-month"></i>
+                                        <div class="text-success mb-3">
+                                            <i class="mdi mdi-calendar-month" style="font-size: 3rem;"></i>
                                         </div>
                                         <h5 class="card-title">Laporan Bulanan</h5>
-                                        <p class="card-text">Analisis produksi per bulan</p>
-                                        <a href="{{ route('pimpinan_laporan_bulanan') }}" class="btn btn-report">
-                                            <i class="mdi mdi-eye"></i> Lihat Laporan
-                                        </a>
+                                        <p class="card-text text-muted">Analisis penjualan bulanan dengan trend dan performa produk</p>
+                                        <div class="mt-3">
+                                            <a href="{{ route('laporan.bulanan') }}" class="btn btn-view">
+                                                <i class="mdi mdi-eye"></i> Lihat Laporan
+                                            </a>
+                                            <a href="{{ route('laporan.bulanan', ['export' => 'pdf']) }}" class="btn btn-export ml-2">
+                                                <i class="mdi mdi-file-pdf"></i> PDF
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Laporan Tahunan -->
                             <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="card report-card card-gradient-3">
+                                <div class="card report-card">
                                     <div class="card-body text-center">
-                                        <div class="report-icon">
-                                            <i class="mdi mdi-calendar-year"></i>
+                                        <div class="text-warning mb-3">
+                                            <i class="mdi mdi-calendar-year" style="font-size: 3rem;"></i>
                                         </div>
                                         <h5 class="card-title">Laporan Tahunan</h5>
-                                        <p class="card-text">Overview produksi tahunan</p>
-                                        <a href="{{ route('pimpinan_laporan_tahunan') }}" class="btn btn-report">
-                                            <i class="mdi mdi-eye"></i> Lihat Laporan
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Stats -->
-                        <div class="row mt-5">
-                            <div class="col-12">
-                                <h5 class="mb-3">
-                                    <i class="mdi mdi-chart-bar"></i> Statistik Cepat
-                                </h5>
-                            </div>
-                            
-                            <div class="col-lg-3 col-md-6">
-                                <div class="card border-left-primary">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="mr-3">
-                                                <i class="mdi mdi-cake-variant text-primary" style="font-size: 2rem;"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                    Total Produk Hari Ini
-                                                </div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-hari-ini">-</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-3 col-md-6">
-                                <div class="card border-left-success">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="mr-3">
-                                                <i class="mdi mdi-calendar-month text-success" style="font-size: 2rem;"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                    Total Bulan Ini
-                                                </div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-bulan-ini">-</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-3 col-md-6">
-                                <div class="card border-left-info">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="mr-3">
-                                                <i class="mdi mdi-currency-usd text-info" style="font-size: 2rem;"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                    Nilai Produksi Bulan Ini
-                                                </div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-nilai-bulan">-</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-3 col-md-6">
-                                <div class="card border-left-warning">
-                                    <div class="card-body">
-                                        <div class="d-flex align-items-center">
-                                            <div class="mr-3">
-                                                <i class="mdi mdi-alert text-warning" style="font-size: 2rem;"></i>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                    Akan Expired
-                                                </div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="stat-expired">-</div>
-                                            </div>
+                                        <p class="card-text text-muted">Overview lengkap penjualan tahunan dengan analisis pertumbuhan</p>
+                                        <div class="mt-3">
+                                            <a href="{{ route('laporan.tahunan') }}" class="btn btn-view">
+                                                <i class="mdi mdi-eye"></i> Lihat Laporan
+                                            </a>
+                                            <a href="{{ route('laporan.tahunan', ['export' => 'pdf']) }}" class="btn btn-export ml-2">
+                                                <i class="mdi mdi-file-pdf"></i> PDF
+                                            </a>
                                         </div>
                                     </div>
                                 </div>
@@ -210,28 +239,65 @@
                 </div>
             </div>
         </div>
+
+        <!-- Quick Download -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title">
+                            <i class="mdi mdi-download"></i> Download Laporan Cepat
+                        </h4>
+                        <p class="card-subtitle mb-4">Unduh laporan PDF dengan periode tertentu</p>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <form action="{{ route('laporan.harian') }}" method="GET" target="_blank">
+                                    <input type="hidden" name="export" value="pdf">
+                                    <div class="form-group">
+                                        <label><i class="mdi mdi-calendar-today"></i> Laporan Harian</label>
+                                        <input type="date" name="tanggal" class="form-control" value="{{ date('Y-m-d') }}">
+                                    </div>
+                                    <button type="submit" class="btn btn-block btn-outline-primary">
+                                        <i class="mdi mdi-download"></i> Download PDF Harian
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <form action="{{ route('laporan.bulanan') }}" method="GET" target="_blank">
+                                    <input type="hidden" name="export" value="pdf">
+                                    <div class="form-group">
+                                        <label><i class="mdi mdi-calendar-month"></i> Laporan Bulanan</label>
+                                        <input type="month" name="bulan" class="form-control" value="{{ date('Y-m') }}">
+                                    </div>
+                                    <button type="submit" class="btn btn-block btn-outline-success">
+                                        <i class="mdi mdi-download"></i> Download PDF Bulanan
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <form action="{{ route('laporan.tahunan') }}" method="GET" target="_blank">
+                                    <input type="hidden" name="export" value="pdf">
+                                    <div class="form-group">
+                                        <label><i class="mdi mdi-calendar-year"></i> Laporan Tahunan</label>
+                                        <select name="tahun" class="form-control">
+                                            @for($year = date('Y'); $year >= date('Y') - 5; $year--)
+                                                <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                                            @endfor
+                                        </select>
+                                    </div>
+                                    <button type="submit" class="btn btn-block btn-outline-warning">
+                                        <i class="mdi mdi-download"></i> Download PDF Tahunan
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-@stop
-
-@section('javascript')
-<script>
-$(document).ready(function() {
-    // Load quick statistics
-    loadQuickStats();
-
-    function loadQuickStats() {
-        // You can implement AJAX calls to get real statistics here
-        // For now, we'll use placeholder values
-        
-        // Simulate loading statistics
-        setTimeout(function() {
-            $('#stat-hari-ini').text('12 produk');
-            $('#stat-bulan-ini').text('156 produk');
-            $('#stat-nilai-bulan').text('Rp 15.600.000');
-            $('#stat-expired').text('3 produk');
-        }, 1000);
-    }
-});
-</script>
 @endsection

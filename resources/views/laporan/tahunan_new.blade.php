@@ -52,14 +52,6 @@
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         margin-bottom: 20px;
-        height: 450px;
-        position: relative;
-    }
-
-    .chart-container canvas {
-        max-height: 350px !important;
-        width: 100% !important;
-        height: 350px !important;
     }
 
     .best-month {
@@ -191,9 +183,7 @@
                     <h5 class="mb-3">
                         <i class="mdi mdi-chart-bar"></i> Grafik Penjualan Bulanan
                     </h5>
-                    <div style="position: relative; height: 350px;">
-                        <canvas id="monthlyChart"></canvas>
-                    </div>
+                    <canvas id="monthlyChart" height="100"></canvas>
                 </div>
             </div>
         </div>
@@ -455,15 +445,6 @@ $(document).ready(function() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: true
-                },
-                title: {
-                    display: true,
-                    text: 'Trend Penjualan Tahunan {{ $tahun }}'
-                }
-            },
             scales: {
                 y: {
                     type: 'linear',
@@ -484,6 +465,15 @@ $(document).ready(function() {
                     grid: {
                         drawOnChartArea: false,
                     },
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true
+                },
+                title: {
+                    display: true,
+                    text: 'Trend Penjualan Tahunan {{ $tahun }}'
                 }
             }
         }

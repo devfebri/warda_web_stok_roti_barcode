@@ -33,6 +33,15 @@ Route::prefix('pimpinan')->middleware(PimpinanMiddleware::class)->name('pimpinan
     Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan_export');
 });
 
+// Route laporan umum (accessible untuk semua role yang ada akses)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/harian', [LaporanController::class, 'harian'])->name('laporan.harian');
+    Route::get('/laporan/bulanan', [LaporanController::class, 'bulanan'])->name('laporan.bulanan');
+    Route::get('/laporan/tahunan', [LaporanController::class, 'tahunan'])->name('laporan.tahunan');
+    Route::get('/laporan/export', [LaporanController::class, 'exportExcel'])->name('laporan.export');
+});
+
 Route::prefix('baker')->middleware(BakerMiddleware::class)->name('baker_')->group(function () {
 
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
