@@ -22,6 +22,14 @@ class DatabaseSeeder extends Seeder
         $data->save();
 
         $data = new User();
+        $data->name = 'Admin';
+        $data->email = 'admin@gmail.com';
+        $data->username = 'admin';
+        $data->role = 'admin';
+        $data->password = bcrypt('password');
+        $data->save();
+
+        $data = new User();
         $data->name = 'Baker';
         $data->email = 'baker@gmail.com';
         $data->username = 'baker';
@@ -36,5 +44,8 @@ class DatabaseSeeder extends Seeder
         $data->role = 'karyawan';
         $data->password = bcrypt('password');
         $data->save();
+
+    // Tambahkan 20 data cheesecake
+    \App\Models\Cheesecake::factory(20)->create();
     }
 }
