@@ -283,7 +283,7 @@
 
                 <!-- Tombol Aksi -->
                 <div class="text-center mt-4">
-                    <a href="javascript:void(0)" onclick="goBack()" class="btn btn-custom mr-2">
+                    <a href="{{ route(auth()->user()->role.'_cheesecake') }}"  class="btn btn-custom mr-2">
                         <i class="fas fa-arrow-left"></i> Kembali
                     </a>
                     @if($cheesecake->qr_code && file_exists(public_path($cheesecake->qr_code)))

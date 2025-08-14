@@ -45,5 +45,6 @@ class DatabaseSeeder extends Seeder
         $data->password = bcrypt('password');
         $data->save();
 
+
     }
 }
