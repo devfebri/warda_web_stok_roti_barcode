@@ -34,6 +34,14 @@
                 </ul>
             </li>
             
+            @elseif(auth()->user()->role == 'admin')
+            <li>
+                <a href="{{ route('admin_users.index') }}" class="waves-effect">
+                    <i class="mdi mdi-account-multiple"></i>
+                    <span> Manajemen User </span>
+                </a>
+            </li>
+            
             @elseif(auth()->user()->role == 'baker')
             <li>
                 <a href="{{ route('baker_cheesecake') }}" class="waves-effect">

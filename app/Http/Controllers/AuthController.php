@@ -19,10 +19,13 @@ class AuthController extends Controller
 
     public function proses_login(Request $request) : RedirectResponse
     {
-        // dd($request->all());
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password]) ) {
-            // dd(Auth::user()->role);
-            return redirect(route(auth()->user()->role . '_cheesecake'))->with('pesan', 'Selamat datang kembali "' . auth()->user()->name . '"');
+            $user = Auth::user();
+            if ($user->role === 'admin') {
+                return redirect()->route('admin_users.index')->with('pesan', 'Selamat datang kembali "' . $user->name . '"');
+            }
+            // role lain tetap ke route lama
+            return redirect(route($user->role . '_cheesecake'))->with('pesan', 'Selamat datang kembali "' . $user->name . '"');
         } else {
             return redirect('/')->with('gagal', 'Periksa Username dan Password anda');
         }

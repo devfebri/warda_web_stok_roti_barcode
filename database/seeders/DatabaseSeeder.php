@@ -45,7 +45,5 @@ class DatabaseSeeder extends Seeder
         $data->password = bcrypt('password');
         $data->save();
 
-    // Tambahkan 20 data cheesecake
-    \App\Models\Cheesecake::factory(20)->create();
     }
 }

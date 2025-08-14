@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\AuthController;
@@ -6,9 +7,11 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\RotiController;
 use App\Http\Controllers\TransaksiController;
+use App\Http\Controllers\UserController;
 use App\Http\Middleware\BakerMiddleware;
 use App\Http\Middleware\KepalaTokoMiddleware;
 use App\Http\Middleware\PimpinanMiddleware;
+use App\Http\Middleware\AdminMiddeleware;
 use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
@@ -20,6 +23,11 @@ Route::post('/proses_login', [AuthController::class, 'proses_login'])->name('pro
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/cheesecake/open/{id}', [CheesecakeController::class, 'open'])->name('cheesecakeopen');
 
+// Route khusus admin
+Route::middleware(AdminMiddeleware::class)->prefix('admin')->name('admin_')->group(function () {
+    Route::resource('users', UserController::class);
+    // Tambahkan route admin lain di sini jika perlu
+});
 Route::prefix('pimpinan')->middleware(PimpinanMiddleware::class)->name('pimpinan_')->group(function () {
     // Dashboard
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
