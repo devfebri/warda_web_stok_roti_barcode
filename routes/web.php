@@ -32,6 +32,7 @@ Route::prefix('pimpinan')->middleware(PimpinanMiddleware::class)->name('pimpinan
     // Dashboard
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    Route::delete('/cheesecake/{id}', [CheesecakeController::class, 'destroy'])->name('cheesecakedelete');
     
     // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
@@ -64,6 +65,7 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
     // Dashboard dan view produk
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    Route::delete('/cheesecake/{id}', [CheesecakeController::class, 'destroy'])->name('cheesecakedelete');
     
     // Transaksi Management
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi');
@@ -79,6 +81,7 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
 Route::prefix('karyawan')->middleware(KepalaTokoMiddleware::class)->name('karyawan_')->group(function () {
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
+    Route::delete('/cheesecake/{id}', [CheesecakeController::class, 'destroy'])->name('cheesecakedelete');
     
     // Transaksi Management
     Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi');

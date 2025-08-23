@@ -41,7 +41,13 @@ class CheesecakeController extends Controller
                     
                     if(Auth::user()->role == 'baker') {
                         $button .= '<button class="tabledit-edit-button btn btn-sm btn-warning edit-post" data-id=' . $f->id . ' style="float: none; margin: 5px;" title="Edit"><span class="ti-pencil"></span></button>';
-                        $button .= '<button class="tabledit-delete-button btn btn-sm btn-danger delete" data-id=' . $f->id . ' style="float: none; margin: 5px;" title="Hapus"><span class="ti-trash"></span></button>';
+                        
+                        // Form hapus dengan PHP
+                        $button .= '<form method="POST" action="' . route(Auth::user()->role.'_cheesecakedelete', $f->id) . '" style="display: inline-block; margin: 5px;" onsubmit="return confirm(\'Yakin ingin menghapus data ini?\')">';
+                        $button .= csrf_field();
+                        $button .= method_field('DELETE');
+                        $button .= '<button type="submit" class="btn btn-sm btn-danger" title="Hapus"><span class="ti-trash"></span></button>';
+                        $button .= '</form>';
                     }
                     
                     $button .= '<a href="' . route('cheesecakeopen', ['id' => $f->id]) . '"  class="btn btn-sm btn-info open-view" data-id=' . $f->id . ' style="float: none; margin: 5px;" title="Lihat Detail"><span class="ti-eye"></span></a>';
@@ -174,26 +180,44 @@ class CheesecakeController extends Controller
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
-        $cheesecake = Cheesecake::findOrFail($id);
-        if ($cheesecake->gambar) {
-            $gambarPath = public_path($cheesecake->gambar);
-            if (file_exists($gambarPath)) {
-                unlink($gambarPath);
+        try {
+            $cheesecake = Cheesecake::findOrFail($id);
+            
+            // Hapus file gambar jika ada
+            if ($cheesecake->gambar) {
+                $gambarPath = public_path($cheesecake->gambar);
+                if (file_exists($gambarPath)) {
+                    unlink($gambarPath);
+                }
             }
-        }
 
-        if ($cheesecake->qr_code) {
-            $qrCodePath = public_path($cheesecake->qr_code);
-            if (file_exists($qrCodePath)) {
-                unlink($qrCodePath);
+            // Hapus file QR code jika ada
+            if ($cheesecake->qr_code) {
+                $qrCodePath = public_path($cheesecake->qr_code);
+                if (file_exists($qrCodePath)) {
+                    unlink($qrCodePath);
+                }
             }
+
+            $cheesecake->delete();
+
+            // Jika request adalah AJAX, return JSON
+            if ($request->ajax()) {
+                return response()->json(['status' => 'success', 'message' => 'Data berhasil dihapus']);
+            }
+            
+            // Jika request adalah form submission, redirect dengan pesan sukses
+            return redirect()->route(Auth::user()->role.'_cheesecake')->with('success', 'Data berhasil dihapus');
+            
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['status' => 'error', 'message' => 'Gagal menghapus data: ' . $e->getMessage()], 500);
+            }
+            
+            return redirect()->route(Auth::user()->role.'_cheesecake')->with('error', 'Gagal menghapus data: ' . $e->getMessage());
         }
-
-        $cheesecake->delete();
-
-        return response()->json(['status' => 'success', 'message' => 'Cheesecake deleted successfully']);
     }
 
     public function open($id)
