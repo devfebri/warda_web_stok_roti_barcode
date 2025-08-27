@@ -39,158 +39,183 @@ class LaporanController extends Controller
 
     public function harian(Request $request)
     {
-        $tanggal = $request->get('tanggal', Carbon::today()->format('Y-m-d'));
-        
-        $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
-            ->whereDate('tanggal_transaksi', $tanggal)
-            ->where('status', 'selesai')
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->get();
+        try {
+            $tanggal = $request->get('tanggal', Carbon::today()->format('Y-m-d'));
+            
+            $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
+                ->whereDate('tanggal_transaksi', $tanggal)
+                ->where('status', 'selesai')
+                ->orderBy('tanggal_transaksi', 'desc')
+                ->get();
 
-        $summary = [
-            'total_transaksi' => $transaksi->count(),
-            'total_penjualan' => $transaksi->sum('total_harga'),
-            'total_item_terjual' => $transaksi->sum(function($t) {
-                return $t->details->sum('jumlah');
-            }),
-            'rata_rata_transaksi' => $transaksi->count() > 0 ? $transaksi->avg('total_harga') : 0,
-            'metode_pembayaran' => $transaksi->groupBy('metode_pembayaran')->map(function($group) {
-                return [
-                    'count' => $group->count(),
-                    'total' => $group->sum('total_harga')
-                ];
-            })
-        ];
+            $summary = [
+                'total_transaksi' => $transaksi->count(),
+                'total_penjualan' => $transaksi->sum('total_harga'),
+                'total_item_terjual' => $transaksi->sum(function($t) {
+                    return $t->details->sum('jumlah');
+                }),
+                'rata_rata_transaksi' => $transaksi->count() > 0 ? $transaksi->avg('total_harga') : 0,
+                'metode_pembayaran' => $transaksi->groupBy('metode_pembayaran')->map(function($group) {
+                    return [
+                        'count' => $group->count(),
+                        'total' => $group->sum('total_harga')
+                    ];
+                })
+            ];
 
-        if ($request->ajax()) {
-            return datatables()->of($transaksi)
-                ->addColumn('kasir_name', function($row) {
-                    return $row->kasir ? $row->kasir->name : 'N/A';
-                })
-                ->addColumn('total_item', function($row) {
-                    return $row->details->sum('jumlah');
-                })
-                ->addColumn('formatted_total', function($row) {
-                    return 'Rp ' . number_format($row->total_harga, 0, ',', '.');
-                })
-                ->addColumn('waktu', function($row) {
-                    return $row->tanggal_transaksi->format('H:i:s');
-                })
-                ->make(true);
+            if ($request->ajax()) {
+                return datatables()->of($transaksi)
+                    ->addColumn('kasir_name', function($row) {
+                        return $row->kasir ? $row->kasir->name : 'N/A';
+                    })
+                    ->addColumn('total_item', function($row) {
+                        return $row->details->sum('jumlah');
+                    })
+                    ->addColumn('formatted_total', function($row) {
+                        return 'Rp ' . number_format($row->total_harga, 0, ',', '.');
+                    })
+                    ->addColumn('waktu', function($row) {
+                        return $row->tanggal_transaksi->format('H:i:s');
+                    })
+                    ->make(true);
+            }
+
+            if ($request->get('export') === 'pdf') {
+                return $this->exportPDF('harian', $transaksi, $summary, $tanggal);
+            }
+
+            return view('laporan.harian', compact('transaksi', 'summary', 'tanggal'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memuat laporan harian: ' . $e->getMessage());
         }
-
-        if ($request->get('export') === 'pdf') {
-            return $this->exportPDF('harian', $transaksi, $summary, $tanggal);
-        }
-
-        return view('laporan.harian', compact('transaksi', 'summary', 'tanggal'));
     }
 
     public function bulanan(Request $request)
     {
-        $bulan = $request->get('bulan', Carbon::now()->format('Y-m'));
-        $startDate = Carbon::createFromFormat('Y-m', $bulan)->startOfMonth();
-        $endDate = Carbon::createFromFormat('Y-m', $bulan)->endOfMonth();
+        try {
+            $bulan = $request->get('bulan', Carbon::now()->format('Y-m'));
+            $startDate = Carbon::createFromFormat('Y-m', $bulan)->startOfMonth();
+            $endDate = Carbon::createFromFormat('Y-m', $bulan)->endOfMonth();
 
-        $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
-            ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
-            ->where('status', 'selesai')
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->get();
+            $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
+                ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
+                ->where('status', 'selesai')
+                ->orderBy('tanggal_transaksi', 'desc')
+                ->get();
 
-        // Group by date for chart
-        $dailyData = $transaksi->groupBy(function($item) {
-            return $item->tanggal_transaksi->format('Y-m-d');
-        });
+            // Group by date for chart
+            $dailyData = $transaksi->groupBy(function($item) {
+                return $item->tanggal_transaksi->format('Y-m-d');
+            });
 
-        $summary = [
-            'total_transaksi' => $transaksi->count(),
-            'total_penjualan' => $transaksi->sum('total_harga'),
-            'total_item_terjual' => $transaksi->sum(function($t) {
-                return $t->details->sum('jumlah');
-            }),
-            'rata_rata_harian' => $dailyData->count() > 0 ? $transaksi->sum('total_harga') / $dailyData->count() : 0,
-            'hari_terbaik' => $dailyData->map(function($dayTransaksi) {
-                return $dayTransaksi->sum('total_harga');
-            })->max()
-        ];
-
-        $chartData = $dailyData->map(function($dayTransaksi, $date) {
-            return [
-                'tanggal' => $date,
-                'jumlah_transaksi' => $dayTransaksi->count(),
-                'total_penjualan' => $dayTransaksi->sum('total_harga')
+            $summary = [
+                'total_transaksi' => $transaksi->count(),
+                'total_penjualan' => $transaksi->sum('total_harga'),
+                'total_item_terjual' => $transaksi->sum(function($t) {
+                    return $t->details->sum('jumlah');
+                }),
+                'rata_rata_harian' => $dailyData->count() > 0 ? $transaksi->sum('total_harga') / $dailyData->count() : 0,
+                'hari_terbaik' => $dailyData->count() > 0 ? $dailyData->map(function($dayTransaksi) {
+                    return $dayTransaksi->sum('total_harga');
+                })->max() : 0
             ];
-        })->values();
 
-        if ($request->get('export') === 'pdf') {
-            return $this->exportPDF('bulanan', $transaksi, $summary, $bulan, $chartData);
+            $chartData = $dailyData->map(function($dayTransaksi, $date) {
+                return [
+                    'tanggal' => $date,
+                    'jumlah_transaksi' => $dayTransaksi->count(),
+                    'total_penjualan' => $dayTransaksi->sum('total_harga')
+                ];
+            })->values();
+            if ($request->get('export') === 'pdf') {
+                
+                return $this->exportPDF('bulanan', $transaksi, $summary, $bulan, $chartData);
+            }
+
+            return view('laporan.bulanan', compact('transaksi', 'summary', 'bulan', 'chartData'));
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memuat laporan bulanan: ' . $e->getMessage());
         }
-
-        return view('laporan.bulanan', compact('transaksi', 'summary', 'bulan', 'chartData'));
     }
 
     public function tahunan(Request $request)
     {
-        $tahun = $request->get('tahun', Carbon::now()->year);
-        $startDate = Carbon::createFromDate($tahun, 1, 1)->startOfYear();
-        $endDate = Carbon::createFromDate($tahun, 12, 31)->endOfYear();
+        try {
+            $tahun = $request->get('tahun', Carbon::now()->year);
+            
+            $startDate = Carbon::createFromDate($tahun, 1, 1)->startOfYear();
+            $endDate = Carbon::createFromDate($tahun, 12, 31)->endOfYear();
 
-        $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
-            ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
-            ->where('status', 'selesai')
-            ->orderBy('tanggal_transaksi', 'desc')
-            ->get();
+            $transaksi = Transaksi::with(['kasir', 'details.cheesecake'])
+                ->whereBetween('tanggal_transaksi', [$startDate, $endDate])
+                ->where('status', 'selesai')
+                ->orderBy('tanggal_transaksi', 'desc')
+                ->get();
+                
 
-        // Group by month for chart
-        $monthlyData = $transaksi->groupBy(function($item) {
-            return $item->tanggal_transaksi->format('Y-m');
-        });
+            // Group by month for chart
+            $monthlyData = $transaksi->groupBy(function($item) {
+                return $item->tanggal_transaksi->format('Y-m');
+            });
+            
 
-        $summary = [
-            'total_transaksi' => $transaksi->count(),
-            'total_penjualan' => $transaksi->sum('total_harga'),
-            'total_item_terjual' => $transaksi->sum(function($t) {
-                return $t->details->sum('jumlah');
-            }),
-            'rata_rata_bulanan' => $monthlyData->count() > 0 ? $transaksi->sum('total_harga') / $monthlyData->count() : 0,
-            'bulan_terbaik' => $monthlyData->map(function($monthTransaksi, $month) {
+            $summary = [
+                'total_transaksi' => $transaksi->count(),
+                'total_penjualan' => $transaksi->sum('total_harga'),
+                'total_item_terjual' => $transaksi->sum(function($t) {
+                    return $t->details->sum('jumlah');
+                }),
+                'rata_rata_bulanan' => $monthlyData->count() > 0 ? $transaksi->sum('total_harga') / $monthlyData->count() : 0,
+                'bulan_terbaik' => $monthlyData->count() > 0 ? $monthlyData->map(function($monthTransaksi, $month) {
+                    return [
+                        'bulan' => $month,
+                        'total' => $monthTransaksi->sum('total_harga')
+                    ];
+                })->sortByDesc('total')->first() : null
+            ];
+           
+            $chartData = $monthlyData->map(function($monthTransaksi, $month) {
                 return [
                     'bulan' => $month,
-                    'total' => $monthTransaksi->sum('total_harga')
+                    'jumlah_transaksi' => $monthTransaksi->count(),
+                    'total_penjualan' => $monthTransaksi->sum('total_harga')
                 ];
-            })->sortByDesc('total')->first()
-        ];
+            })->values();
+             
+            if ($request->get('export') === 'pdf') {
+                
+                return $this->exportPDF('tahunan', $transaksi, $summary, $tahun, $chartData);
+            }else{
 
-        $chartData = $monthlyData->map(function($monthTransaksi, $month) {
-            return [
-                'bulan' => $month,
-                'jumlah_transaksi' => $monthTransaksi->count(),
-                'total_penjualan' => $monthTransaksi->sum('total_harga')
-            ];
-        })->values();
+                return view('laporan.tahunan', compact('transaksi', 'summary', 'tahun', 'chartData'));
+            }
 
-        if ($request->get('export') === 'pdf') {
-            return $this->exportPDF('tahunan', $transaksi, $summary, $tahun, $chartData);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal memuat laporan tahunan: ' . $e->getMessage());
         }
-
-        return view('laporan.tahunan', compact('transaksi', 'summary', 'tahun', 'chartData'));
     }
 
     private function exportPDF($type, $data, $summary, $period, $chartData = null)
     {
-        $company = [
-            'name' => 'Bakery Warda',
-            'address' => 'Jl. Contoh No. 123, Kota',
-            'phone' => '0812-3456-7890',
-            'email' => 'info@bakerywarda.com'
-        ];
+        try {
+            $company = [
+                'name' => 'Bakery Warda',
+                'address' => 'Jl. Contoh No. 123, Kota',
+                'phone' => '0812-3456-7890',
+                'email' => 'info@bakerywarda.com'
+            ];
 
-        $pdf = PDF::loadView('laporan.pdf.' . $type, compact('data', 'summary', 'period', 'chartData', 'company'));
-        
-        $filename = 'laporan_' . $type . '_' . $period . '.pdf';
-        
-        return $pdf->download($filename);
+            $pdf = PDF::loadView('laporan.pdf.' . $type, compact('data', 'summary', 'period', 'chartData', 'company'));
+            
+            // Set paper size and orientation
+            $pdf->setPaper('A4', 'portrait');
+            
+            $filename = 'laporan_' . $type . '_' . str_replace([':', ' '], '_', $period) . '.pdf';
+            
+            return $pdf->download($filename);
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membuat PDF: ' . $e->getMessage());
+        }
     }
 
     public function exportExcel(Request $request)

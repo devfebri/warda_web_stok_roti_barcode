@@ -18,8 +18,13 @@ class CheesecakeController extends Controller
     public function showQr($id)
     {
         $roti = Cheesecake::findOrFail($id);
+        
+        // Check if baker can only view QR codes of their own cheesecakes
+        if (Auth::user()->role == 'baker' && $roti->baker_id != Auth::id()) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses untuk melihat QR code ini'], 403);
+        }
+        
         if ($roti->qr_code) {
-
             return response()->json([
                 'qr_url' => asset($roti->qr_code)
             ]);
@@ -31,8 +36,37 @@ class CheesecakeController extends Controller
     }
     public function index(Request $request)
     {
-        $data = Cheesecake::with('baker')->orderBy('created_at', 'desc')->get();
+        // Auto-update expired status setiap kali halaman dibuka
+        Cheesecake::updateExpiredStatus();
         
+        $query = Cheesecake::with('baker');
+        
+        // Filter by baker_id if user is baker
+        if (Auth::user()->role == 'baker') {
+            $query->where('baker_id', Auth::id());
+        }
+        
+        $data = $query->orderBy('created_at', 'desc')->get();
+        
+        // Handle statistics AJAX request
+        if ($request->ajax() && $request->has('statistics')) {
+            return response()->json([
+                'data' => $data->map(function ($item) {
+                    return [
+                        'id' => $item->id,
+                        'nama' => $item->nama,
+                        'kode_produk' => $item->kode_produk,
+                        'jumlah' => $item->jumlah,
+                        'harga_raw' => (float) $item->harga,
+                        'tanggal_dibuat' => $item->tanggal_dibuat ? $item->tanggal_dibuat->format('Y-m-d') : null,
+                        'status' => $item->status,
+                        'is_expired' => $item->is_expired
+                    ];
+                })
+            ]);
+        }
+        
+        // Handle DataTables AJAX request
         if ($request->ajax()) {
             return datatables()->of($data)
                 ->addColumn('action', function ($f) {
@@ -61,13 +95,16 @@ class CheesecakeController extends Controller
                 ->addColumn('baker_name', function ($f) {
                     return $f->baker ? $f->baker->name : 'N/A';
                 })
+                ->addColumn('kode_produk', function ($f) {
+                    return $f->kode_produk;
+                })
                 ->addColumn('status_expired', function ($f) {
-                    if ($f->is_expired) {
-                        return '<span class="badge badge-danger">Expired</span>';
+                    if ($f->is_expired || !$f->status) {
+                        return '<span class="badge badge-danger">Expired</span><br><small><i>tidak layak di konsumsi</i></small>';
                     } else {
                         $hari = $f->hari_tersisa;
                         $class = $hari <= 1 ? 'badge-warning' : 'badge-success';
-                        return '<span class="badge ' . $class . '">' . $hari . ' hari tersisa</span>';
+                        return '<span class="badge ' . $class . '">' . $hari . ' hari tersisa</span><br><small><i>layak di konsumsi</i></small>';
                     }
                 })
                 ->editColumn('harga', function ($f) {
@@ -89,6 +126,35 @@ class CheesecakeController extends Controller
         return view('cheesecake.index', compact('data'));
     }
 
+    public function statistics(Request $request)
+    {
+        // Auto-update expired status
+        Cheesecake::updateExpiredStatus();
+        
+        $query = Cheesecake::with('baker');
+        
+        // Filter by baker_id if user is baker
+        if (Auth::user()->role == 'baker') {
+            $query->where('baker_id', Auth::id());
+        }
+        
+        $data = $query->orderBy('created_at', 'desc')->get();
+        
+        return response()->json([
+            'data' => $data->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'nama' => $item->nama,
+                    'jumlah' => $item->jumlah,
+                    'harga_raw' => (float) $item->harga,
+                    'tanggal_dibuat' => $item->tanggal_dibuat ? $item->tanggal_dibuat->format('Y-m-d') : null,
+                    'status' => $item->status,
+                    'is_expired' => $item->is_expired
+                ];
+            })
+        ]);
+    }
+
     public function store(Request $request)
     {
         if ($request->id) {
@@ -96,6 +162,11 @@ class CheesecakeController extends Controller
 
             if (!$post) {
                 return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan'], 404);
+            }
+
+            // Check if baker can only edit their own cheesecakes
+            if (Auth::user()->role == 'baker' && $post->baker_id != Auth::id()) {
+                return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses untuk mengedit data ini'], 403);
             }
 
             if ($request->hasFile('gambar')) {
@@ -143,6 +214,7 @@ class CheesecakeController extends Controller
 
             // Simpan data roti
             $post = new Cheesecake();
+             $post->kode_produk = Cheesecake::generateKodeproduk();
             $post->nama = $request->nama;
             $post->ukuran = $request->ukuran;
             $post->deskripsi = $request->deskripsi;
@@ -185,6 +257,14 @@ class CheesecakeController extends Controller
         try {
             $cheesecake = Cheesecake::findOrFail($id);
             
+            // Check if baker can only delete their own cheesecakes
+            if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {
+                if ($request->ajax()) {
+                    return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses untuk menghapus data ini'], 403);
+                }
+                return redirect()->route(Auth::user()->role.'_cheesecake')->with('error', 'Anda tidak memiliki akses untuk menghapus data ini');
+            }
+            
             // Hapus file gambar jika ada
             if ($cheesecake->gambar) {
                 $gambarPath = public_path($cheesecake->gambar);
@@ -224,6 +304,12 @@ class CheesecakeController extends Controller
     {
         try {
             $cheesecake = Cheesecake::with('baker')->findOrFail($id);
+            
+            // Check if baker can only view their own cheesecakes
+            if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {
+                abort(403, 'Anda tidak memiliki akses untuk melihat data ini');
+            }
+            
             return view('cheesecake.open_debug', compact('cheesecake'));
         } catch (\Exception $e) {
             // Log error untuk debugging
@@ -237,6 +323,12 @@ class CheesecakeController extends Controller
     public function edit($id)
     {
         $cheesecake = Cheesecake::findOrFail($id);
+        
+        // Check if baker can only edit their own cheesecakes
+        if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {
+            return response()->json(['status' => 'error', 'message' => 'Anda tidak memiliki akses untuk mengedit data ini'], 403);
+        }
+        
         return response()->json($cheesecake);
     }
 }

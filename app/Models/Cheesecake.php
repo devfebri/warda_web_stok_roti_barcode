@@ -97,4 +97,26 @@ class Cheesecake extends Model
     {
         return $query->where('tanggal_dibuat', '>=', Carbon::now()->subDays(3));
     }
+
+    // Method untuk update status expired otomatis
+    public static function updateExpiredStatus()
+    {
+        $expiredProducts = self::where('status', true)
+            ->where('tanggal_dibuat', '<', Carbon::now()->subDays(3))
+            ->get();
+        
+        foreach ($expiredProducts as $product) {
+            $product->update(['status' => false]);
+        }
+        
+        return $expiredProducts->count();
+    }
+
+    public static function generateKodeproduk()
+    {
+        $tanggal = Carbon::now()->format('Ymd');
+        $last = self::whereDate('created_at', Carbon::now())->latest()->first();
+        $nomor = $last ? (int)substr($last->kode_produk, -4) + 1 : 1;
+        return 'CSC' . $tanggal . str_pad($nomor, 4, '0', STR_PAD_LEFT);
+    }
 }

@@ -263,7 +263,7 @@
         @endif
 
         <!-- Top Products -->
-        @if($transaksi->count() > 0)
+        {{-- @if($transaksi->count() > 0)
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -334,74 +334,8 @@
                 </div>
             </div>
         </div>
-        @endif
+        @endif --}}
 
-        <!-- Quarterly Analysis -->
-        @if($chartData && $chartData->count() > 0)
-        <div class="row">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="mdi mdi-chart-pie"></i> Analisis per Kuartal
-                        </h5>
-
-                        @php
-                            $quarters = [
-                                'Q1' => ['months' => [1, 2, 3], 'name' => 'Kuartal 1 (Jan-Mar)', 'total' => 0, 'transactions' => 0],
-                                'Q2' => ['months' => [4, 5, 6], 'name' => 'Kuartal 2 (Apr-Jun)', 'total' => 0, 'transactions' => 0],
-                                'Q3' => ['months' => [7, 8, 9], 'name' => 'Kuartal 3 (Jul-Sep)', 'total' => 0, 'transactions' => 0],
-                                'Q4' => ['months' => [10, 11, 12], 'name' => 'Kuartal 4 (Okt-Des)', 'total' => 0, 'transactions' => 0]
-                            ];
-                            
-                            foreach($chartData as $monthData) {
-                                $month = \Carbon\Carbon::createFromFormat('Y-m', $monthData['bulan'])->month;
-                                foreach($quarters as $qKey => &$quarter) {
-                                    if(in_array($month, $quarter['months'])) {
-                                        $quarter['total'] += $monthData['total_penjualan'];
-                                        $quarter['transactions'] += $monthData['jumlah_transaksi'];
-                                        break;
-                                    }
-                                }
-                            }
-                        @endphp
-
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Kuartal</th>
-                                        <th class="text-center">Jumlah Transaksi</th>
-                                        <th class="text-right">Total Penjualan</th>
-                                        <th class="text-right">% dari Total Tahun</th>
-                                        <th class="text-center">Performa</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($quarters as $qKey => $quarter)
-                                    <tr>
-                                        <td><strong>{{ $quarter['name'] }}</strong></td>
-                                        <td class="text-center">{{ number_format($quarter['transactions']) }}</td>
-                                        <td class="text-right">Rp {{ number_format($quarter['total'], 0, ',', '.') }}</td>
-                                        <td class="text-right">{{ number_format(($quarter['total'] / $summary['total_penjualan']) * 100, 1) }}%</td>
-                                        <td class="text-center">
-                                            @php
-                                                $percentage = ($quarter['total'] / $summary['total_penjualan']) * 100;
-                                                $performance = $percentage >= 30 ? 'Excellent' : ($percentage >= 25 ? 'Good' : ($percentage >= 20 ? 'Average' : 'Below Average'));
-                                                $badgeClass = $percentage >= 30 ? 'success' : ($percentage >= 25 ? 'primary' : ($percentage >= 20 ? 'warning' : 'danger'));
-                                            @endphp
-                                            <span class="badge badge-{{ $badgeClass }}">{{ $performance }}</span>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @endif
 
         @if($transaksi->count() == 0)
         <div class="row">

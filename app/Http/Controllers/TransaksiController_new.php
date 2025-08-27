@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Transaksi;
-use App\Models\User;
 use App\Models\TransaksiDetail;
 use App\Models\Cheesecake;
 use Illuminate\Http\Request;
@@ -58,42 +57,7 @@ class TransaksiController extends Controller
                 ->make(true);
         }
 
-        // Hitung statistik untuk view
-        $today = now()->format('Y-m-d');
-        $baseQuery = Transaksi::where('status', 'selesai');
-        
-        // Penjualan Hari Ini
-        $penjualanHariIni = (clone $baseQuery)
-            ->whereDate('tanggal_transaksi', $today)
-            ->sum('total_harga') ?: 0;
-        
-        // Transaksi Hari Ini
-        $transaksiHariIni = (clone $baseQuery)
-            ->whereDate('tanggal_transaksi', $today)
-            ->count() ?: 0;
-        
-        // Penjualan Bulan Ini
-        $penjualanBulanIni = (clone $baseQuery)
-            ->whereYear('tanggal_transaksi', now()->year)
-            ->whereMonth('tanggal_transaksi', now()->month)
-            ->sum('total_harga') ?: 0;
-        
-        // Total Pelanggan Unik
-        $totalPelanggan = (clone $baseQuery)
-            ->whereNotNull('nama_pelanggan')
-            ->where('nama_pelanggan', '!=', '')
-            ->where('nama_pelanggan', '!=', 'null')
-            ->distinct('nama_pelanggan')
-            ->count('nama_pelanggan') ?: 0;
-
-        $statistik = [
-            'penjualan_hari_ini' => 'Rp ' . number_format($penjualanHariIni, 0, ',', '.'),
-            'transaksi_hari_ini' => number_format($transaksiHariIni, 0, ',', '.'),
-            'penjualan_bulan_ini' => 'Rp ' . number_format($penjualanBulanIni, 0, ',', '.'),
-            'total_pelanggan' => number_format($totalPelanggan, 0, ',', '.'),
-        ];
-
-        return view('transaksi.index', compact('statistik'));
+        return view('transaksi.index');
     }
 
     public function statistics(Request $request)
@@ -103,38 +67,32 @@ class TransaksiController extends Controller
             $currentMonth = now()->format('Y-m');
             
             // Base query
-            $baseQuery = Transaksi::query();
+            $query = Transaksi::with(['kasir', 'details.cheesecake']);
             
             // Penjualan Hari Ini
-            $penjualanHariIni = $baseQuery->clone()
+            $penjualanHariIni = $query->clone()
                 ->whereDate('tanggal_transaksi', $today)
                 ->where('status', 'selesai')
-                ->sum('total_harga') ?: 0;
+                ->sum('total_harga');
             
             // Transaksi Hari Ini
-            $transaksiHariIni = $baseQuery->clone()
+            $transaksiHariIni = $query->clone()
                 ->whereDate('tanggal_transaksi', $today)
                 ->where('status', 'selesai')
-                ->count() ?: 0;
+                ->count();
             
-            // Penjualan Bulan Ini - Fixed query
-            $penjualanBulanIni = $baseQuery->clone()
-                ->whereYear('tanggal_transaksi', now()->year)
-                ->whereMonth('tanggal_transaksi', now()->month)
+            // Penjualan Bulan Ini
+            $penjualanBulanIni = $query->clone()
+                ->where('tanggal_transaksi', 'like', $currentMonth . '%')
                 ->where('status', 'selesai')
-                ->sum('total_harga') ?: 0;
+                ->sum('total_harga');
             
             // Total Pelanggan Unik
-            $totalPelanggan = $baseQuery->clone()
+            $totalPelanggan = $query->clone()
                 ->whereNotNull('nama_pelanggan')
                 ->where('nama_pelanggan', '!=', '')
-                ->where('nama_pelanggan', '!=', 'null')
                 ->distinct('nama_pelanggan')
-                ->count('nama_pelanggan') ?: 0;
-            
-            // Get total records for debugging
-            $totalTransaksi = Transaksi::count();
-            $totalSelesai = Transaksi::where('status', 'selesai')->count();
+                ->count('nama_pelanggan');
             
             return response()->json([
                 'status' => 'success',
@@ -145,21 +103,13 @@ class TransaksiController extends Controller
                     'penjualan_bulan_ini' => 'Rp ' . number_format($penjualanBulanIni, 0, ',', '.'),
                     'penjualan_bulan_ini_raw' => $penjualanBulanIni,
                     'total_pelanggan' => number_format($totalPelanggan, 0, ',', '.')
-                ],
-                'debug' => [
-                    'today' => $today,
-                    'current_month' => $currentMonth,
-                    'total_transaksi' => $totalTransaksi,
-                    'total_selesai' => $totalSelesai
                 ]
             ]);
             
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal memuat statistik: ' . $e->getMessage(),
-                'line' => $e->getLine(),
-                'file' => $e->getFile()
+                'message' => 'Gagal memuat statistik: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -380,68 +330,6 @@ class TransaksiController extends Controller
                 'status' => 'error',
                 'message' => 'Produk tidak ditemukan'
             ], 404);
-        }
-    }
-
-    public function createTestData()
-    {
-        try {
-            // Create test transactions if none exist
-            if (Transaksi::count() == 0) {
-                // Get a user for kasir_id
-                $user = \App\Models\User::first();
-                if (!$user) {
-                    return response()->json(['error' => 'No users found in database']);
-                }
-
-                // Create today's transaction
-                Transaksi::create([
-                    'kode_transaksi' => 'TRX-TEST-001',
-                    'kasir_id' => $user->id,
-                    'nama_pelanggan' => 'Pelanggan Test 1',
-                    'total_harga' => 150000,
-                    'bayar' => 200000,
-                    'kembalian' => 50000,
-                    'status' => 'selesai',
-                    'metode_pembayaran' => 'tunai',
-                    'tanggal_transaksi' => now(),
-                    'catatan' => 'Test transaction hari ini'
-                ]);
-
-                // Create another transaction today
-                Transaksi::create([
-                    'kode_transaksi' => 'TRX-TEST-002',
-                    'kasir_id' => $user->id,
-                    'nama_pelanggan' => 'Pelanggan Test 2',
-                    'total_harga' => 75000,
-                    'bayar' => 100000,
-                    'kembalian' => 25000,
-                    'status' => 'selesai',
-                    'metode_pembayaran' => 'transfer',
-                    'tanggal_transaksi' => now()->subHours(2),
-                    'catatan' => 'Test transaction 2'
-                ]);
-
-                // Create a monthly transaction
-                Transaksi::create([
-                    'kode_transaksi' => 'TRX-TEST-003',
-                    'kasir_id' => $user->id,
-                    'nama_pelanggan' => 'Pelanggan Test 3',
-                    'total_harga' => 300000,
-                    'bayar' => 300000,
-                    'kembalian' => 0,
-                    'status' => 'selesai',
-                    'metode_pembayaran' => 'kartu',
-                    'tanggal_transaksi' => now()->subDays(5),
-                    'catatan' => 'Test transaction bulan ini'
-                ]);
-
-                return response()->json(['success' => 'Test data created successfully']);
-            }
-
-            return response()->json(['info' => 'Test data already exists']);
-        } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()]);
         }
     }
 }

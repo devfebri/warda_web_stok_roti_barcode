@@ -9,6 +9,8 @@ use Carbon\Carbon;
 
 class Transaksi extends Model
 {
+    protected $table = 'transaksis';
+    
     protected $fillable = [
         'kode_transaksi',
         'kasir_id',

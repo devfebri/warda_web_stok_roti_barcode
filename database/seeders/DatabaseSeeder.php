@@ -30,9 +30,16 @@ class DatabaseSeeder extends Seeder
         $data->save();
 
         $data = new User();
-        $data->name = 'Baker';
+        $data->name = 'Warda';
         $data->email = 'baker@gmail.com';
-        $data->username = 'baker';
+        $data->username = 'baker1';
+        $data->role = 'baker';
+        $data->password = bcrypt('password');
+        $data->save();
+        $data = new User();
+        $data->name = 'Putri';
+        $data->email = 'baker@gmail.com';
+        $data->username = 'baker2';
         $data->role = 'baker';
         $data->password = bcrypt('password');
         $data->save();

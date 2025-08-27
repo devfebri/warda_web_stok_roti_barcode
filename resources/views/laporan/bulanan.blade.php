@@ -219,7 +219,7 @@
         @endif
 
         <!-- Product Performance -->
-        @if($transaksi->count() > 0)
+        {{-- @if($transaksi->count() > 0)
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -280,7 +280,7 @@
                 </div>
             </div>
         </div>
-        @endif
+        @endif --}}
 
         @if($transaksi->count() == 0)
         <div class="row">

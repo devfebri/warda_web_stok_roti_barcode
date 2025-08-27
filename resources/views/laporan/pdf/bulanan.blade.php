@@ -9,24 +9,24 @@
 <div class="summary-grid">
     <div class="summary-card">
         <div class="summary-title">Total Transaksi</div>
-        <div class="summary-value">{{ number_format($summary['total_transaksi']) }}</div>
+        <div class="summary-value">{{ number_format($summary['total_transaksi'] ?? 0) }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Total Penjualan</div>
-        <div class="summary-value currency">Rp {{ number_format($summary['total_penjualan'], 0, ',', '.') }}</div>
+        <div class="summary-value currency">Rp {{ number_format($summary['total_penjualan'] ?? 0, 0, ',', '.') }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Rata-rata Harian</div>
-        <div class="summary-value currency">Rp {{ number_format($summary['rata_rata_harian'], 0, ',', '.') }}</div>
+        <div class="summary-value currency">Rp {{ number_format($summary['rata_rata_harian'] ?? 0, 0, ',', '.') }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Penjualan Tertinggi</div>
-        <div class="summary-value currency">Rp {{ number_format($summary['hari_terbaik'], 0, ',', '.') }}</div>
+        <div class="summary-value currency">Rp {{ number_format($summary['hari_terbaik'] ?? 0, 0, ',', '.') }}</div>
     </div>
 </div>
 
 <!-- Daily Chart Data -->
-@if($chartData && $chartData->count() > 0)
+@if(isset($chartData) && $chartData->count() > 0)
 <div class="table-container">
     <div class="table-title">Penjualan Harian</div>
     <table>
@@ -52,7 +52,7 @@
                         Rp 0
                     @endif
                 </td>
-                <td class="text-right">{{ number_format(($dayData['total_penjualan'] / $summary['total_penjualan']) * 100, 1) }}%</td>
+                <td class="text-right">{{ ($summary['total_penjualan'] ?? 0) > 0 ? number_format(($dayData['total_penjualan'] / $summary['total_penjualan']) * 100, 1) : 0 }}%</td>
             </tr>
             @endforeach
             <tr class="total-row">

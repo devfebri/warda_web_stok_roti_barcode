@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Statistics</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Testing Statistics</h1>
+    <div id="result"></div>
+    
+    <script>
+        // Test the statistics endpoint
+        $.ajax({
+            url: 'http://127.0.0.1:8000/kepalatoko/transaksi/statistics',
+            type: 'GET',
+            success: function(response) {
+                console.log('Success:', response);
+                $('#result').html('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+                console.log('Status:', xhr.status);
+                console.log('Response:', xhr.responseText);
+                $('#result').html('<p>Error: ' + error + '</p><p>Status: ' + xhr.status + '</p><p>Response: ' + xhr.responseText + '</p>');
+            }
+        });
+    </script>
+</body>
+</html>

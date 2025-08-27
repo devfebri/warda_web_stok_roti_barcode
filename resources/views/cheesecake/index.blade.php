@@ -167,9 +167,9 @@
                                             </div>
                                             <div>
                                                 <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                    Akan Expired
+                                                    Expired
                                                 </div>
-                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="akan-expired">-</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="expired">-</div>
                                             </div>
                                         </div>
                                     </div>
@@ -183,6 +183,7 @@
                                     <thead class="thead-light">
                                         <tr>
                                             <th>No</th>
+                                            <th>Kode Produk</th>
                                             <th>Nama Produk</th>
                                             <th>Baker</th>
                                             <th>Ukuran</th>
@@ -229,7 +230,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="ukuran" class="font-weight-bold">Ukuran <span class="text-danger">*</span></label>
-                                <select class="form-control" name="ukuran" id="ukuran" required>
+                                <select class="form-control" name="ukuran"  required>
                                     <option value="">Pilih Ukuran</option>
                                     <option value="Small (6 inch)">Small (6 inch)</option>
                                     <option value="Medium (8 inch)">Medium (8 inch)</option>
@@ -237,7 +238,7 @@
                                     <option value="Personal (4 inch)">Personal (4 inch)</option>
                                 </select>
                             </div>
-                        </div>
+                        </div>  
                     </div>
                     
                     <div class="row">
@@ -344,6 +345,7 @@ $(document).ready(function() {
                     return meta.row + meta.settings._iDisplayStart + 1;
                 }
             },
+            { data: 'kode_produk', name: 'kode_produk' },
             { data: 'nama', name: 'nama' },
             { data: 'baker_name', name: 'baker_name' },
             { data: 'ukuran', name: 'ukuran' },
@@ -378,33 +380,30 @@ $(document).ready(function() {
 
     // Update statistics
     function updateStatistics() {
-        $.get("{{ route(auth()->user()->role.'_cheesecake') }}", function(response) {
+        $.get("{{ route(auth()->user()->role.'_cheesecake_statistics') }}", function(response) {
             console.log('Response data:', response); // Debug log
             if (response.data) {
                 var totalProduk = response.data.length;
                 var totalStok = 0;
                 var totalNilai = 0;
-                var akanExpired = 0;
+                var expired = 0;
 
                 response.data.forEach(function(item) {
                     console.log('Processing item:', item); // Debug log
-                    totalStok += parseInt(item.jumlah || 0);
-                    // Gunakan harga_raw untuk perhitungan yang akurat
-                    var jumlah = parseInt(item.jumlah || 0);
-                    var harga = parseFloat(item.harga_raw || 0);
-                    totalNilai += (jumlah * harga);
-                    console.log('Jumlah:', jumlah, 'Harga:', harga, 'Subtotal:', jumlah * harga); // Debug log
                     
-                    // Check if will expire in 1 day or less
-                    var tanggalDibuat = new Date(item.tanggal_dibuat);
-                    var tanggalExpired = new Date(tanggalDibuat);
-                    tanggalExpired.setDate(tanggalExpired.getDate() + 3);
-                    var now = new Date();
-                    var diffTime = tanggalExpired - now;
-                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    // Check if expired based on status or calculated expiry
+                    var isExpired = item.is_expired || !item.status;
                     
-                    if (diffDays <= 1 && diffDays >= 0) {
-                        akanExpired++;
+                    if (isExpired) {
+                        expired++;
+                    } else {
+                        // Only count non-expired items for stock and value
+                        totalStok += parseInt(item.jumlah || 0);
+                        // Gunakan harga_raw untuk perhitungan yang akurat
+                        var jumlah = parseInt(item.jumlah || 0);
+                        var harga = parseFloat(item.harga_raw || 0);
+                        totalNilai += (jumlah * harga);
+                        console.log('Jumlah:', jumlah, 'Harga:', harga, 'Subtotal:', jumlah * harga); // Debug log
                     }
                 });
 
@@ -412,8 +411,15 @@ $(document).ready(function() {
                 $('#total-produk').text(totalProduk);
                 $('#total-stok').text(totalStok + ' pcs');
                 $('#total-nilai').text('Rp ' + (isNaN(totalNilai) ? 0 : new Intl.NumberFormat('id-ID').format(totalNilai)));
-                $('#akan-expired').text(akanExpired + ' produk');
+                $('#expired').text(expired + ' produk');
             }
+        }).fail(function(xhr, status, error) {
+            console.error('Error loading statistics:', error);
+            // Set default values on error
+            $('#total-produk').text('Error');
+            $('#total-stok').text('Error');
+            $('#total-nilai').text('Error');
+            $('#expired').text('Error');
         });
     }
 

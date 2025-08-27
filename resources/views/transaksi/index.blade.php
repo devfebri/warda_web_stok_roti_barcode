@@ -85,7 +85,7 @@
                         </div>
                         <div>
                             <div class="text-uppercase mb-1" style="font-size: 0.8rem;">Penjualan Hari Ini</div>
-                            <div class="h5 mb-0 font-weight-bold" id="penjualan-hari-ini">Rp 0</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $statistik['penjualan_hari_ini'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -98,7 +98,7 @@
                         </div>
                         <div>
                             <div class="text-uppercase mb-1" style="font-size: 0.8rem;">Transaksi Hari Ini</div>
-                            <div class="h5 mb-0 font-weight-bold" id="transaksi-hari-ini">0</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $statistik['transaksi_hari_ini'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                         </div>
                         <div>
                             <div class="text-uppercase mb-1" style="font-size: 0.8rem;">Penjualan Bulan Ini</div>
-                            <div class="h5 mb-0 font-weight-bold" id="penjualan-bulan-ini">Rp 0</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $statistik['penjualan_bulan_ini'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -124,7 +124,7 @@
                         </div>
                         <div>
                             <div class="text-uppercase mb-1" style="font-size: 0.8rem;">Total Pelanggan</div>
-                            <div class="h5 mb-0 font-weight-bold" id="total-pelanggan">0</div>
+                            <div class="h5 mb-0 font-weight-bold">{{ $statistik['total_pelanggan'] }}</div>
                         </div>
                     </div>
                 </div>
@@ -140,6 +140,9 @@
                             <a href="{{ route('kepalatoko_transaksi_create') }}" class="btn btn-light btn-sm float-right">
                                 <i class="mdi mdi-plus"></i> Transaksi Baru
                             </a>
+                            <button id="create-test-data" class="btn btn-warning btn-sm float-right mr-2">
+                                <i class="mdi mdi-database"></i> Buat Data Test
+                            </button>
                         </h4>
                     </div>
                     <div class="card-body">
@@ -246,9 +249,6 @@ $(document).ready(function() {
                 next: "Selanjutnya",
                 previous: "Sebelumnya"
             }
-        },
-        drawCallback: function(settings) {
-            updateStatistics();
         }
     });
 
@@ -335,18 +335,24 @@ $(document).ready(function() {
         );
     });
 
-    // Update statistics
-    function updateStatistics() {
-        // Implement AJAX call to get statistics
-        // For now, we'll use placeholder values
-        $('#penjualan-hari-ini').text('Rp 0');
-        $('#transaksi-hari-ini').text('0');
-        $('#penjualan-bulan-ini').text('Rp 0');
-        $('#total-pelanggan').text('0');
-    }
-
-    // Load initial statistics
-    updateStatistics();
+    // Create test data button
+    $('#create-test-data').click(function() {
+        $.get("{{ route('kepalatoko_create_test_data') }}", function(response) {
+            console.log('Test data response:', response);
+            if (response.success) {
+                alert('Test data berhasil dibuat!');
+                // Refresh halaman untuk update statistik
+                location.reload();
+            } else if (response.info) {
+                alert(response.info);
+            } else {
+                alert('Error: ' + (response.error || 'Unknown error'));
+            }
+        }).fail(function(xhr) {
+            console.error('Error creating test data:', xhr.responseText);
+            alert('Gagal membuat test data: ' + xhr.responseText);
+        });
+    });
 });
 </script>
 @endsection

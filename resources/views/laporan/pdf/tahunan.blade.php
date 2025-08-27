@@ -9,20 +9,20 @@
 <div class="summary-grid">
     <div class="summary-card">
         <div class="summary-title">Total Transaksi</div>
-        <div class="summary-value">{{ number_format($summary['total_transaksi']) }}</div>
+        <div class="summary-value">{{ number_format($summary['total_transaksi'] ?? 0) }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Total Penjualan</div>
-        <div class="summary-value currency">Rp {{ number_format($summary['total_penjualan'], 0, ',', '.') }}</div>
+        <div class="summary-value currency">Rp {{ number_format($summary['total_penjualan'] ?? 0, 0, ',', '.') }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Rata-rata Bulanan</div>
-        <div class="summary-value currency">Rp {{ number_format($summary['rata_rata_bulanan'], 0, ',', '.') }}</div>
+        <div class="summary-value currency">Rp {{ number_format($summary['rata_rata_bulanan'] ?? 0, 0, ',', '.') }}</div>
     </div>
     <div class="summary-card">
         <div class="summary-title">Bulan Terbaik</div>
         <div class="summary-value">
-            @if($summary['bulan_terbaik'])
+            @if(isset($summary['bulan_terbaik']) && $summary['bulan_terbaik'] && is_array($summary['bulan_terbaik']))
                 {{ \Carbon\Carbon::createFromFormat('Y-m', $summary['bulan_terbaik']['bulan'])->format('F Y') }}
                 <br><small>Rp {{ number_format($summary['bulan_terbaik']['total'], 0, ',', '.') }}</small>
             @else
@@ -33,7 +33,7 @@
 </div>
 
 <!-- Monthly Chart Data -->
-@if($chartData && $chartData->count() > 0)
+@if(isset($chartData) && $chartData && $chartData->count() > 0)
 <div class="table-container">
     <div class="table-title">Penjualan per Bulan</div>
     <table>
@@ -70,7 +70,7 @@
                         Rp 0
                     @endif
                 </td>
-                <td class="text-right">{{ number_format(($monthData['total_penjualan'] / $summary['total_penjualan']) * 100, 1) }}%</td>
+                <td class="text-right">{{ ($summary['total_penjualan'] ?? 0) > 0 ? number_format(($monthData['total_penjualan'] / $summary['total_penjualan']) * 100, 1) : 0 }}%</td>
                 <td class="text-center">
                     <span class="highlight">{{ $rankings[$monthData['bulan']] ?? '-' }}</span>
                 </td>
@@ -89,126 +89,8 @@
 </div>
 @endif
 
-<!-- Quarterly Analysis -->
-@if($chartData && $chartData->count() > 0)
-<div class="table-container">
-    <div class="table-title">Analisis per Kuartal</div>
-    <table>
-        <thead>
-            <tr>
-                <th>Kuartal</th>
-                <th>Periode</th>
-                <th class="text-center">Jumlah Transaksi</th>
-                <th class="text-right">Total Penjualan</th>
-                <th class="text-right">% dari Total Tahun</th>
-                <th class="text-center">Performa</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $quarters = [
-                    'Q1' => ['months' => [1, 2, 3], 'name' => 'Jan - Mar', 'total' => 0, 'transactions' => 0],
-                    'Q2' => ['months' => [4, 5, 6], 'name' => 'Apr - Jun', 'total' => 0, 'transactions' => 0],
-                    'Q3' => ['months' => [7, 8, 9], 'name' => 'Jul - Sep', 'total' => 0, 'transactions' => 0],
-                    'Q4' => ['months' => [10, 11, 12], 'name' => 'Okt - Des', 'total' => 0, 'transactions' => 0]
-                ];
-                
-                foreach($chartData as $monthData) {
-                    $month = \Carbon\Carbon::createFromFormat('Y-m', $monthData['bulan'])->month;
-                    foreach($quarters as $qKey => &$quarter) {
-                        if(in_array($month, $quarter['months'])) {
-                            $quarter['total'] += $monthData['total_penjualan'];
-                            $quarter['transactions'] += $monthData['jumlah_transaksi'];
-                            break;
-                        }
-                    }
-                }
-                
-                // Sort quarters by performance
-                $quarterPerformance = collect($quarters)->sortByDesc('total');
-            @endphp
-            
-            @foreach($quarters as $qKey => $quarter)
-            <tr>
-                <td><strong>{{ $qKey }}</strong></td>
-                <td>{{ $quarter['name'] }}</td>
-                <td class="text-center">{{ number_format($quarter['transactions']) }}</td>
-                <td class="text-right currency">Rp {{ number_format($quarter['total'], 0, ',', '.') }}</td>
-                <td class="text-right">{{ number_format(($quarter['total'] / $summary['total_penjualan']) * 100, 1) }}%</td>
-                <td class="text-center">
-                    @php
-                        $rank = $quarterPerformance->search(function($item) use ($quarter) {
-                            return $item['total'] == $quarter['total'];
-                        }) + 1;
-                        $performance = ['Terbaik', 'Baik', 'Cukup', 'Perlu Perbaikan'][$rank - 1] ?? 'Normal';
-                    @endphp
-                    <span class="highlight">{{ $performance }}</span>
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
-@endif
 
-<!-- Product Performance Summary -->
-@if($data->count() > 0)
-<div class="table-container">
-    <div class="table-title">Top 10 Produk Terlaris Tahun {{ $period }}</div>
-    <table>
-        <thead>
-            <tr>
-                <th class="text-center">Rank</th>
-                <th>Nama Produk</th>
-                <th class="text-center">Total Terjual</th>
-                <th class="text-right">Total Nilai</th>
-                <th class="text-right">Rata-rata Bulanan</th>
-                <th class="text-right">% Kontribusi</th>
-            </tr>
-        </thead>
-        <tbody>
-            @php
-                $productSales = [];
-                $totalMonths = $chartData ? $chartData->count() : 1;
-                
-                foreach($data as $transaksi) {
-                    foreach($transaksi->details as $detail) {
-                        $productName = $detail->cheesecake->nama;
-                        if(!isset($productSales[$productName])) {
-                            $productSales[$productName] = [
-                                'jumlah' => 0,
-                                'total' => 0
-                            ];
-                        }
-                        $productSales[$productName]['jumlah'] += $detail->jumlah;
-                        $productSales[$productName]['total'] += $detail->subtotal;
-                    }
-                }
-                
-                // Sort by total value and take top 10
-                uasort($productSales, function($a, $b) {
-                    return $b['total'] <=> $a['total'];
-                });
-                
-                $topProducts = array_slice($productSales, 0, 10, true);
-            @endphp
-            
-            @foreach($topProducts as $index => $data_item)
-            @php $productName = array_keys($topProducts)[$loop->index] @endphp
-            <tr>
-                <td class="text-center">
-                    <span class="highlight">{{ $loop->iteration }}</span>
-                </td>
-                <td>{{ $productName }}</td>
-                <td class="text-center">{{ number_format($data_item['jumlah']) }}</td>
-                <td class="text-right currency">Rp {{ number_format($data_item['total'], 0, ',', '.') }}</td>
-                <td class="text-center">{{ number_format($data_item['jumlah'] / $totalMonths, 1) }}</td>
-                <td class="text-right">{{ number_format(($data_item['total'] / $summary['total_penjualan']) * 100, 1) }}%</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-</div>
+
 
 <!-- Growth Analysis -->
 @if($chartData && $chartData->count() > 1)
@@ -270,9 +152,8 @@
     </table>
 </div>
 @endif
-@endif
 
-@if($data->count() == 0)
+@if(isset($data) && $data->count() == 0)
 <div style="text-align: center; padding: 50px; color: #666;">
     <p>Tidak ada transaksi pada tahun {{ $period }}</p>
 </div>

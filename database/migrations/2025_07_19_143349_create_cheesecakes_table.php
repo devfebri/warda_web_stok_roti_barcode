@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('cheesecakes', function (Blueprint $table) {
             $table->id();
+            $table->string('kode_produk')->unique();
             $table->string('nama', 200);
             $table->string('ukuran', 100);
             $table->text('deskripsi')->nullable();

@@ -180,7 +180,7 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label for="role" class="font-weight-bold">Role <span class="text-danger">*</span></label>
-                                <select name="role" id="role" class="form-control" required>
+                                <select name="role" class="form-control" required>
                                     <option value="">Pilih Role</option>
                                     <option value="admin">Admin</option>
                                     <option value="pimpinan">Pimpinan</option>

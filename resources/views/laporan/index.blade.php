@@ -128,7 +128,7 @@
                 <div class="summary-card card-success">
                     <div class="text-center">
                         <div class="summary-icon">
-                            <i class="mdi mdi-shopping-cart"></i>
+                            <i class="mdi  mdi-calendar-today"></i>
                         </div>
                         <div class="summary-value">{{ number_format($summary['transaksi_hari_ini']) }}</div>
                         <div class="summary-label">Transaksi Hari Ini</div>
@@ -140,7 +140,7 @@
                 <div class="summary-card card-warning">
                     <div class="text-center">
                         <div class="summary-icon">
-                            <i class="mdi mdi-calendar-month"></i>
+                            <i class="mdi  mdi-calendar-today"></i>
                         </div>
                         <div class="summary-value">Rp {{ number_format($summary['penjualan_bulan_ini'], 0, ',', '.') }}</div>
                         <div class="summary-label">Penjualan Bulan Ini</div>
@@ -152,7 +152,7 @@
                 <div class="summary-card card-danger">
                     <div class="text-center">
                         <div class="summary-icon">
-                            <i class="mdi mdi-calendar-year"></i>
+                            <i class="mdi  mdi-calendar-today"></i>
                         </div>
                         <div class="summary-value">Rp {{ number_format($summary['penjualan_tahun_ini'], 0, ',', '.') }}</div>
                         <div class="summary-label">Penjualan Tahun Ini</div>
@@ -198,7 +198,7 @@
                                 <div class="card report-card">
                                     <div class="card-body text-center">
                                         <div class="text-success mb-3">
-                                            <i class="mdi mdi-calendar-month" style="font-size: 3rem;"></i>
+                                            <i class="mdi mdi-calendar-today" style="font-size: 3rem;"></i>
                                         </div>
                                         <h5 class="card-title">Laporan Bulanan</h5>
                                         <p class="card-text text-muted">Analisis penjualan bulanan dengan trend dan performa produk</p>
@@ -219,7 +219,7 @@
                                 <div class="card report-card">
                                     <div class="card-body text-center">
                                         <div class="text-warning mb-3">
-                                            <i class="mdi mdi-calendar-year" style="font-size: 3rem;"></i>
+                                            <i class="mdi mdi-calendar-today" style="font-size: 3rem;"></i>
                                         </div>
                                         <h5 class="card-title">Laporan Tahunan</h5>
                                         <p class="card-text text-muted">Overview lengkap penjualan tahunan dengan analisis pertumbuhan</p>
