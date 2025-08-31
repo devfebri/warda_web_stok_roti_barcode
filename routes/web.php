@@ -919,7 +919,7 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
 // Alias routes untuk karyawan (redirect ke kepalatoko)
 Route::prefix('karyawan')->middleware(KepalaTokoMiddleware::class)->name('karyawan_')->group(function () {
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
-    Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('transaksi_statistics');
+    Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('cheesecake_statistics');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
     Route::delete('/cheesecake/{id}', [CheesecakeController::class, 'destroy'])->name('cheesecakedelete');
     
