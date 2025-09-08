@@ -54,30 +54,6 @@
         border-color: #667eea;
         box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
     }
-    
-    /* Ensure buttons are clickable */
-    .btn {
-        pointer-events: auto !important;
-        cursor: pointer !important;
-        position: relative;
-        z-index: 1;
-    }
-    
-    /* Debug button highlighting */
-    #tombol-tambah:hover {
-        background-color: #dc3545 !important;
-        transform: scale(1.05);
-    }
-    
-    .edit-roti:hover {
-        background-color: #dc3545 !important;
-        transform: scale(1.05);
-    }
-    
-    .delete-roti:hover {
-        background-color: #007bff !important;
-        transform: scale(1.05);
-    }
 </style>
 @endsection
 
@@ -113,7 +89,6 @@
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Gambar</th>
                                             <th>Nama Roti</th>
                                             <th>Harga</th>
                                             <th>Aksi</th>
@@ -123,13 +98,6 @@
                                         @foreach($rotis as $key => $roti)
                                         <tr>
                                             <td>{{ $key + 1 }}</td>
-                                            <td>
-                                                @if($roti->gambar && file_exists(public_path($roti->gambar)))
-                                                <img src="{{ asset($roti->gambar) }}" alt="{{ $roti->nama }}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
-                                                @else
-                                                <span class="text-muted">No Image</span>
-                                                @endif
-                                            </td>
                                             <td>{{ $roti->nama }}</td>
                                             <td>Rp {{ number_format($roti->harga, 0, ',', '.') }}</td>
                                             <td>
@@ -184,16 +152,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="form-group">
-                                 <label for="gambar" class="font-weight-bold">Foto Produk <span class="text-danger">*</span></label>
-                                 <input class="form-control-file" type="file" name="gambar" id="gambar" accept="image/*" required>
-                                 <small class="form-text text-muted">Format yang didukung: JPG, JPEG, PNG. Maksimal 2MB.</small>
-                                 <div id="preview-container" class="mt-2"></div>
-                             </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
@@ -226,112 +184,39 @@
 </div>
 @endsection
 
-@section('javascript')
-<!-- Test basic functionality first -->
+@section('script')
+<!-- Alertify JS -->
+<script src="https://cdn.jsdelivr.net/npm/alertifyjs@1.13.1/build/alertify.min.js"></script>
+
 <script>
-// Wait for document ready and test basic functions
 $(document).ready(function() {
-    // console.log('Document ready!');
-    // console.log('jQuery version:', $.fn.jquery);
-    // console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined');
-    
-    // // Test button exists
-    // console.log('Tambah button exists:', $('#tombol-tambah').length);
-    // console.log('Edit buttons exist:', $('.edit-roti').length);
-    // console.log('Delete buttons exist:', $('.delete-roti').length);
-    
-    // Setup CSRF token
     $.ajaxSetup({
         headers: {
             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
         }
     });
-    console.log('CSRF token:', $('meta[name="csrf-token"]').attr('content'));
 
-    // TOMBOL TAMBAH - Simple click handler
-    $(document).on('click', '#tombol-tambah', function(e) {
-        e.preventDefault();
-        // console.log('TAMBAH BUTTON CLICKED!');
-        // alert('Tambah button clicked!'); // Simple test
-
-        
+    // Tombol Tambah
+    $('#tombol-tambah').click(function() {
         $('#id').val('');
         $('#form-tambah-edit')[0].reset();
-        $('#preview-container').empty();
         $('#modal-title-text').text('Tambah Roti');
         $('#tombol-simpan').text('Simpan');
-        $('#gambar').attr('required', true);
         $('#tambah-edit-modal').modal('show');
     });
 
-    // TOMBOL EDIT - Simple click handler  
-    $(document).on('click', '.edit-roti', function(e) {
+    // Submit Form
+    $('#form-tambah-edit').submit(function(e) {
         e.preventDefault();
-        // console.log('EDIT BUTTON CLICKED!');
-        // alert('Edit button clicked!'); // Simple test
-        
-        var id = $(this).data('id');
-        // console.log('Edit ID:', id);
-        
-        var url = "{{ route('admin_rotis.edit', ':id') }}".replace(':id', id);
-        // console.log('Edit URL:', url);
-        
-        $.get(url)
-            .done(function(data) {
-                console.log('Edit data received:', data);
-                $('#modal-title-text').text('Edit Roti');
-                $('#tombol-simpan').text('Update');
-                $('#id').val(data.id);
-                $('#nama').val(data.nama);
-                $('#harga').val(data.harga);
-                $('#gambar').removeAttr('required');
-                
-                // Show current image if exists
-                if (data.gambar) {
-                    $('#preview-container').html('<div class="mt-2"><img src="{{ asset("") }}' + data.gambar + '" class="img-thumbnail" style="max-width: 200px;"><p class="text-muted mt-1">Gambar saat ini</p></div>');
-                } else {
-                    $('#preview-container').empty();
-                }
-                
-                $('#tambah-edit-modal').modal('show');
-            })
-            .fail(function(xhr) {
-                console.log('Edit failed:', xhr);
-                alert('Error: ' + xhr.statusText);
-            });
-    });
-
-    // TOMBOL HAPUS - Simple click handler
-    var deleteId;
-    $(document).on('click', '.delete-roti', function(e) {
-        e.preventDefault();
-        // console.log('DELETE BUTTON CLICKED!');
-        // alert('Delete button clicked!'); // Simple test
-        
-        deleteId = $(this).data('id');
-        // console.log('Delete ID:', deleteId);
-        $('#konfirmasi-modal').modal('show');
-    });
-
-    // FORM SUBMIT
-    $('#form-tambah-edit').on('submit', function(e) {
-        e.preventDefault();
-        // console.log('FORM SUBMITTED!');
         
         var formData = new FormData(this);
-        var isEdit = $('#id').val() ? true : false;
-        var url = isEdit ? 
-            "{{ route('admin_rotis.update', ':id') }}".replace(':id', $('#id').val()) : 
-            "{{ route('admin_rotis.store') }}";
+        var url = $('#id').val() ? "{{ route('admin_roti.update', ':id') }}".replace(':id', $('#id').val()) : "{{ route('admin_roti.store') }}";
         
-        if (isEdit) {
+        if($('#id').val()) {
             formData.append('_method', 'PUT');
         }
-        formData.append('_token', '{{ csrf_token() }}');
         
-        // console.log('URL:', url);
-        
-        $('#tombol-simpan').prop('disabled', true).text('Processing...');
+        $('#tombol-simpan').text('Menyimpan...');
         
         $.ajax({
             url: url,
@@ -340,86 +225,82 @@ $(document).ready(function() {
             processData: false,
             contentType: false,
             success: function(response) {
-                // console.log('Success:', response);
                 $('#tambah-edit-modal').modal('hide');
                 $('#form-tambah-edit')[0].reset();
-                $('#preview-container').empty();
-                alert('Success: ' + response.message);
-                location.reload();
+                alertify.success(response.message);
+                $('#tombol-simpan').text('Simpan');
+                location.reload(); // Reload page to show new data
             },
             error: function(xhr) {
-                console.log('Error:', xhr);
-                $('#tombol-simpan').prop('disabled', false).text(isEdit ? 'Update' : 'Simpan');
-                
-                var errorMsg = 'Terjadi kesalahan';
-                if(xhr.responseJSON && xhr.responseJSON.errors) {
+                $('#tombol-simpan').text('Simpan');
+                if(xhr.status === 422) {
                     var errors = xhr.responseJSON.errors;
-                    errorMsg = 'Validation errors:\n';
+                    var errorMessage = 'Terjadi kesalahan validasi:\n';
                     Object.keys(errors).forEach(function(key) {
-                        errorMsg += '- ' + errors[key][0] + '\n';
+                        errorMessage += '- ' + errors[key][0] + '\n';
                     });
-                } else if(xhr.responseJSON && xhr.responseJSON.message) {
-                    errorMsg = xhr.responseJSON.message;
+                    alertify.error(errorMessage);
+                } else {
+                    alertify.error('Terjadi kesalahan saat menyimpan data');
                 }
-                alert('Error: ' + errorMsg);
             }
         });
     });
 
-    // KONFIRMASI HAPUS
-    $('#tombol-hapus').on('click', function(e) {
-        e.preventDefault();
-        // console.log('CONFIRM DELETE CLICKED! ID:', deleteId);
+    // Tombol Edit
+    $('.edit-roti').click(function() {
+        var id = $(this).data('id');
+        var url = "{{ route('admin_roti.edit', ':id') }}".replace(':id', id);
         
-        if(!deleteId) {
-            // alert('No ID to delete');
-            return;
-        }
+        $.get(url, function(data) {
+            $('#modal-title-text').text('Edit Roti');
+            $('#tombol-simpan').text('Update');
+            $('#id').val(data.id);
+            $('#nama').val(data.nama);
+            $('#harga').val(data.harga);
+            $('#tambah-edit-modal').modal('show');
+        }).fail(function() {
+            alertify.error('Gagal mengambil data');
+        });
+    });
+
+    // Tombol Hapus
+    var deleteId;
+    $('.delete-roti').click(function() {
+        deleteId = $(this).data('id');
+        $('#konfirmasi-modal').modal('show');
+    });
+
+    $('#tombol-hapus').click(function() {
+        var url = "{{ route('admin_roti.destroy', ':id') }}".replace(':id', deleteId);
         
-        var url = "{{ route('admin_rotis.destroy', ':id') }}".replace(':id', deleteId);
-        // console.log('Delete URL:', url);
-        
-        $('#tombol-hapus').prop('disabled', true).text('Deleting...');
+        $('#tombol-hapus').text('Menghapus...');
         
         $.ajax({
             url: url,
             type: 'DELETE',
             success: function(response) {
-                // console.log('Delete success:', response);
                 $('#konfirmasi-modal').modal('hide');
-                // alert('Success: ' + response.message);
-                location.reload();
+                alertify.success(response.message);
+                $('#tombol-hapus').text('Hapus');
+                location.reload(); // Reload page to remove deleted data
             },
-            error: function(xhr) {
-                // console.log('Delete error:', xhr);
-                $('#tombol-hapus').prop('disabled', false).text('Hapus');
-                // alert('Delete failed: ' + xhr.statusText);
+            error: function() {
+                $('#tombol-hapus').text('Hapus');
+                alertify.error('Gagal menghapus data');
             }
         });
     });
-    
-    // Preview gambar saat upload
-    $('#gambar').change(function() {
-        var file = this.files[0];
-        if (file) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                $('#preview-container').html('<div class="mt-2"><img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px;"><p class="text-muted mt-1">Preview gambar</p></div>');
-            };
-            reader.readAsDataURL(file);
-        }
+
+    // Reset modal ketika ditutup
+    $('#tambah-edit-modal').on('hidden.bs.modal', function() {
+        $('#form-tambah-edit')[0].reset();
+        $('#id').val('');
     });
-    
-    // Test modal functionality
-    setTimeout(function() {
-        console.log('Testing modal availability...');
-        if(typeof $.fn.modal === 'undefined') {
-            console.error('Bootstrap modal not available!');
-            alert('Bootstrap modal not loaded!');
-        } else {
-            console.log('Bootstrap modal is available');
-        }
-    }, 1000);
+
+    $('#konfirmasi-modal').on('hidden.bs.modal', function() {
+        $('#tombol-hapus').text('Hapus');
+    });
 });
 </script>
 @endsection

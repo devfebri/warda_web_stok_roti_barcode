@@ -112,11 +112,11 @@
                                     <div class="card-body">
                                         <div class="d-flex align-items-center">
                                             <div class="mr-3">
-                                                <i class="mdi mdi-cake-variant text-primary" style="font-size: 2rem;"></i>
+                                                <i class="mdi mdi-cake-varia nt text-primary" style="font-size: 2rem;"></i>
                                             </div>
                                             <div>
                                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                    Total Produk
+                                                    Total Produksi
                                                 </div>
                                                 <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-produk">-</div>
                                             </div>
@@ -183,12 +183,12 @@
                                     <thead class="thead-light">
                                         <tr>
                                             <th>No</th>
-                                            <th>Kode Produk</th>
-                                            <th>Nama Produk</th>
+                                            <th>Kode Produksi</th>
+                                            <th>Produksi</th>
                                             <th>Baker</th>
-                                            <th>Ukuran</th>
                                             <th>Jumlah</th>
                                             <th>Harga (per pcs)</th>
+                                            <th>Total</th>
                                             <th>Tanggal Dibuat</th>
                                             <th>Status</th>
                                             <th>Dibuat</th>
@@ -223,29 +223,13 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label for="nama" class="font-weight-bold">Nama Produk <span class="text-danger">*</span></label>
-                                <input class="form-control" type="text" name="nama" id="nama" placeholder="Masukkan nama cheesecake" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="ukuran" class="font-weight-bold">Ukuran <span class="text-danger">*</span></label>
-                                <select class="form-control" name="ukuran"  required>
-                                    <option value="">Pilih Ukuran</option>
-                                    <option value="Small (6 inch)">Small (6 inch)</option>
-                                    <option value="Medium (8 inch)">Medium (8 inch)</option>
-                                    <option value="Large (10 inch)">Large (10 inch)</option>
-                                    <option value="Personal (4 inch)">Personal (4 inch)</option>
+                                <label for="roti_id" class="font-weight-bold">Pilih Roti <span class="text-danger">*</span></label>
+                                <select class="form-control" name="roti_id" id="roti_id" required>
+                                    <option value="">Pilih Roti</option>
+                                    @foreach($rotis as $roti)
+                                    <option value="{{ $roti->id }}" data-harga="{{ $roti->harga }}">{{ $roti->nama }} - Rp {{ number_format($roti->harga, 0, ',', '.') }}</option>
+                                    @endforeach
                                 </select>
-                            </div>
-                        </div>  
-                    </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="jumlah" class="font-weight-bold">Jumlah Produksi <span class="text-danger">*</span></label>
-                                <input class="form-control" type="number" name="jumlah" id="jumlah" min="1" placeholder="Masukkan jumlah" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -255,10 +239,34 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text">Rp</span>
                                     </div>
-                                    <input class="form-control" type="number" name="harga" id="harga" min="0" placeholder="Masukkan harga" required>
+                                    <input class="form-control" type="number" name="harga" id="harga" min="0" placeholder="Pilih roti untuk melihat harga" readonly required>
                                 </div>
+                                <small class="text-muted">Harga otomatis berdasarkan roti yang dipilih</small>
                             </div>
                         </div>
+                    </div>
+                    
+                    <div class="row">
+                        
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="jumlah" class="font-weight-bold">Jumlah Produksi <span class="text-danger">*</span></label>
+                                <input class="form-control" type="number" name="jumlah" id="jumlah" min="1" placeholder="Masukkan jumlah" required>
+                            </div>
+                        </div>
+                         <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="total" class="font-weight-bold">Total Harga</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">Rp</span>
+                                    </div>
+                                    <input class="form-control" type="number" name="total" id="total" min="0" placeholder="Total otomatis" readonly>
+                                </div>
+                                <small class="text-muted">Total = Harga per pcs × Jumlah</small>
+                            </div>
+                        </div>
+                       
                     </div>
 
                     <div class="form-group">
@@ -271,12 +279,7 @@
                         <input class="form-control" type="date" name="tanggal_dibuat" id="tanggal_dibuat" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="gambar" class="font-weight-bold">Foto Produk <span class="text-danger">*</span></label>
-                        <input class="form-control-file" type="file" name="gambar" id="gambar" accept="image/*" required>
-                        <small class="form-text text-muted">Format yang didukung: JPG, JPEG, PNG. Maksimal 2MB.</small>
-                        <div id="preview-container" class="mt-2"></div>
-                    </div>
+                    
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">
@@ -332,6 +335,31 @@ $(document).ready(function() {
     // Set default date to today
     $('#tanggal_dibuat').val(new Date().toISOString().split('T')[0]);
 
+    // Handle roti selection - auto fill harga
+    $('#roti_id').on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var harga = selectedOption.data('harga') || 0;
+        
+        console.log('Roti selected:', selectedOption.text(), 'Harga:', harga);
+        $('#harga').val(harga);
+        calculateTotal(); // Calculate total when harga changes
+    });
+
+    // Calculate total when jumlah changes
+    $('#jumlah').on('input change', function() {
+        calculateTotal();
+    });
+
+    // Function to calculate total harga
+    function calculateTotal() {
+        var harga = parseFloat($('#harga').val()) || 0;
+        var jumlah = parseInt($('#jumlah').val()) || 0;
+        var total = harga * jumlah;
+        
+        $('#total').val(total);
+        console.log('Total calculated:', total, '(Harga:', harga, '× Jumlah:', jumlah, ')');
+    }
+
     // Initialize DataTable
     var table = $('#datatable1').DataTable({
         processing: true,
@@ -348,9 +376,9 @@ $(document).ready(function() {
             { data: 'kode_produk', name: 'kode_produk' },
             { data: 'nama', name: 'nama' },
             { data: 'baker_name', name: 'baker_name' },
-            { data: 'ukuran', name: 'ukuran' },
             { data: 'jumlah', name: 'jumlah' },
             { data: 'harga', name: 'harga' },
+            { data: 'total', name: 'totalgetFormattedHargaAttribute' },
             { data: 'tanggal_dibuat', name: 'tanggal_dibuat' },
             { data: 'status_expired', name: 'status_expired', orderable: false },
             { data: 'created_at', name: 'created_at' },
@@ -430,7 +458,10 @@ $(document).ready(function() {
         $('#form-tambah-edit').trigger("reset");
         $('#modal-title-text').html("Tambah Data Cheesecake");
         $('#tambah-edit-modal').modal('show');
-        $('#gambar').attr('required', true);
+        
+        // Reset calculated fields
+        $('#harga').val('');
+        $('#total').val('');
         $('#preview-container').empty();
     });
 
@@ -438,11 +469,7 @@ $(document).ready(function() {
     if ($("#form-tambah-edit").length > 0) {
         $("#form-tambah-edit").validate({
             rules: {
-                nama: {
-                    required: true,
-                    minlength: 3
-                },
-                ukuran: {
+                roti_id: {
                     required: true
                 },
                 jumlah: {
@@ -458,11 +485,7 @@ $(document).ready(function() {
                 }
             },
             messages: {
-                nama: {
-                    required: "Nama produk harus diisi",
-                    minlength: "Nama produk minimal 3 karakter"
-                },
-                ukuran: "Ukuran harus dipilih",
+                roti_id: "Roti harus dipilih",
                 jumlah: {
                     required: "Jumlah harus diisi",
                     min: "Jumlah minimal 1"
@@ -524,13 +547,15 @@ $(document).ready(function() {
             $('#tambah-edit-modal').modal('show');
 
             $('#id').val(data.id);
-            $('#nama').val(data.nama);
-            $('#ukuran').val(data.ukuran);
+            $('#roti_id').val(data.roti_id);
             $('#jumlah').val(data.jumlah);
             $('#deskripsi').val(data.deskripsi);
             $('#harga').val(data.harga);
             $('#tanggal_dibuat').val(data.tanggal_dibuat);
             $('#gambar').removeAttr('required');
+            
+            // Calculate total for existing data
+            calculateTotal();
             
             if (data.gambar) {
                 $('#preview-container').html('<div class="mt-2"><img src="' + "{{ asset('') }}" + data.gambar + '" class="img-thumbnail" style="max-width: 200px;"><p class="text-muted mt-1">Gambar saat ini</p></div>');
@@ -599,10 +624,7 @@ $(document).ready(function() {
     });
 
     // Initialize select2
-    $('#ukuran').select2({
-        placeholder: "Pilih ukuran",
-        allowClear: true
-    });
+    
 
     // Load initial statistics
     updateStatistics();

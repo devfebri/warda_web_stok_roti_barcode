@@ -39,7 +39,7 @@ class CheesecakeController extends Controller
         // Auto-update expired status setiap kali halaman dibuka
         Cheesecake::updateExpiredStatus();
         
-        $query = Cheesecake::with('baker');
+        $query = Cheesecake::with(['baker', 'roti']);
         
         // Filter by baker_id if user is baker
         if (Auth::user()->role == 'baker') {
@@ -47,6 +47,7 @@ class CheesecakeController extends Controller
         }
         
         $data = $query->orderBy('created_at', 'desc')->get();
+        $rotis = \App\Models\Roti::all(); // Get rotis for dropdown
         
         // Handle statistics AJAX request
         if ($request->ajax() && $request->has('statistics')) {
@@ -54,7 +55,7 @@ class CheesecakeController extends Controller
                 'data' => $data->map(function ($item) {
                     return [
                         'id' => $item->id,
-                        'nama' => $item->nama,
+                        'nama' => $item->roti ? $item->roti->nama : '-',
                         'kode_produk' => $item->kode_produk,
                         'jumlah' => $item->jumlah,
                         'harga_raw' => (float) $item->harga,
@@ -98,6 +99,9 @@ class CheesecakeController extends Controller
                 ->addColumn('kode_produk', function ($f) {
                     return $f->kode_produk;
                 })
+                ->addColumn('nama', function ($f) {
+                    return $f->roti ? $f->roti->nama : '-';
+                })
                 ->addColumn('status_expired', function ($f) {
                     if ($f->is_expired || !$f->status) {
                         return '<span class="badge badge-danger">Expired</span><br><small><i>tidak layak di konsumsi</i></small>';
@@ -109,6 +113,9 @@ class CheesecakeController extends Controller
                 })
                 ->editColumn('harga', function ($f) {
                     return $f->formatted_harga;
+                })
+                ->editColumn('total', function ($f) {
+                    return 'Rp '.number_format($f->total,0);
                 })
                 ->addColumn('harga_raw', function ($f) {
                     return (float) $f->harga;
@@ -123,7 +130,7 @@ class CheesecakeController extends Controller
                 ->addIndexColumn()
                 ->make(true);
         }
-        return view('cheesecake.index', compact('data'));
+        return view('cheesecake.index', compact('data', 'rotis'));
     }
 
     public function statistics(Request $request)
@@ -157,6 +164,26 @@ class CheesecakeController extends Controller
 
     public function store(Request $request)
     {
+        // Validation rules
+        $rules = [
+            'roti_id' => 'required|exists:rotis,id',
+            'jumlah' => 'required|integer|min:1',
+            'harga' => 'required|numeric|min:0',
+            'tanggal_dibuat' => 'required|date',
+            'deskripsi' => 'nullable|string',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ];
+
+        // Validate request
+        $validator = \Validator::make($request->all(), $rules);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
         if ($request->id) {
             $post = Cheesecake::find($request->id);
 
@@ -187,11 +214,12 @@ class CheesecakeController extends Controller
                 $post->gambar = 'storage/cheesecake/' . Auth::user()->username . '/' . $filename;
             }
 
-            $post->nama = $request->nama;
-            $post->ukuran = $request->ukuran;
+            $post->roti_id = $request->roti_id;
             $post->deskripsi = $request->deskripsi;
             $post->jumlah = $request->jumlah;
+            $post->total = $request->total;
             $post->harga = $request->harga;
+            $post->total = $request->total;
             $post->tanggal_dibuat = $request->tanggal_dibuat;
             $post->baker_id = Auth::id();
             $post->save();
@@ -215,10 +243,10 @@ class CheesecakeController extends Controller
             // Simpan data roti
             $post = new Cheesecake();
              $post->kode_produk = Cheesecake::generateKodeproduk();
-            $post->nama = $request->nama;
-            $post->ukuran = $request->ukuran;
+            $post->roti_id = $request->roti_id;
             $post->deskripsi = $request->deskripsi;
             $post->jumlah = $request->jumlah;
+            $post->total = $request->total;
             $post->harga = $request->harga;
             $post->tanggal_dibuat = $request->tanggal_dibuat;
             $post->baker_id = Auth::id();
@@ -322,7 +350,7 @@ class CheesecakeController extends Controller
 
     public function edit($id)
     {
-        $cheesecake = Cheesecake::findOrFail($id);
+        $cheesecake = Cheesecake::with('roti')->findOrFail($id);
         
         // Check if baker can only edit their own cheesecakes
         if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {

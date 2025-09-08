@@ -13,12 +13,12 @@ return new class extends Migration
     {
         Schema::create('cheesecakes', function (Blueprint $table) {
             $table->id();
+            $table->integer('roti_id');
+            $table->string('harga', 50);
             $table->string('kode_produk')->unique();
-            $table->string('nama', 200);
-            $table->string('ukuran', 100);
             $table->text('deskripsi')->nullable();
             $table->integer('jumlah')->default(0);
-            $table->string('harga', 50);
+            $table->string('total',50);
             $table->text('gambar')->nullable();
             $table->date('tanggal_dibuat');
             $table->text('qr_code')->nullable();

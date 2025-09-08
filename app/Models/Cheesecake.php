@@ -12,8 +12,7 @@ class Cheesecake extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'nama',
-        'ukuran', 
+        'roti_id', 
         'deskripsi',
         'jumlah',
         'harga',
@@ -36,6 +35,12 @@ class Cheesecake extends Model
     public function baker()
     {
         return $this->belongsTo(User::class, 'baker_id');
+    }
+
+    // Relasi dengan roti
+    public function roti()
+    {
+        return $this->belongsTo(Roti::class, 'roti_id');
     }
 
     // Relasi dengan transaksi detail

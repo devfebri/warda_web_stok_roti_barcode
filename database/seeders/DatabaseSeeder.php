@@ -52,6 +52,9 @@ class DatabaseSeeder extends Seeder
         $data->password = bcrypt('password');
         $data->save();
 
-
+        // Call other seeders
+        $this->call([
+            RotiSeeder::class,
+        ]);
     }
 }

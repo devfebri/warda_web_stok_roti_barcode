@@ -41,6 +41,12 @@
                     <span> Manajemen User </span>
                 </a>
             </li>
+            <li>
+                <a href="{{ route('admin_rotis.index') }}" class="waves-effect">
+                    <i class="mdi mdi-cube-outlin"></i>
+                    <span> Data Roti </span>
+                </a>
+            </li>
             
             @elseif(auth()->user()->role == 'baker')
             <li>
