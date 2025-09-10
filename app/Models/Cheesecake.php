@@ -120,8 +120,28 @@ class Cheesecake extends Model
     public static function generateKodeproduk()
     {
         $tanggal = Carbon::now()->format('Ymd');
-        $last = self::whereDate('created_at', Carbon::now())->latest()->first();
-        $nomor = $last ? (int)substr($last->kode_produk, -4) + 1 : 1;
-        return 'CSC' . $tanggal . str_pad($nomor, 4, '0', STR_PAD_LEFT);
+        
+        // Cari kode produk terakhir untuk tanggal ini, tidak peduli created_at
+        $last = self::where('kode_produk', 'like', 'CSC' . $tanggal . '%')
+                   ->orderBy('kode_produk', 'desc')
+                   ->first();
+        
+        if ($last) {
+            // Ambil nomor dari kode produk terakhir
+            $lastNumber = (int)substr($last->kode_produk, -4);
+            $nomor = $lastNumber + 1;
+        } else {
+            $nomor = 1;
+        }
+        
+        $kodeUsul = 'CSC' . $tanggal . str_pad($nomor, 4, '0', STR_PAD_LEFT);
+        
+        // Double check apakah kode sudah ada (untuk memastikan 100% unique)
+        while (self::where('kode_produk', $kodeUsul)->exists()) {
+            $nomor++;
+            $kodeUsul = 'CSC' . $tanggal . str_pad($nomor, 4, '0', STR_PAD_LEFT);
+        }
+        
+        return $kodeUsul;
     }
 }

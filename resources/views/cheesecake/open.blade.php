@@ -160,12 +160,7 @@
                     <!-- Info Produk -->
                     <div class="col-md-6">
                         <div class="info-container">
-                            <div class="info-item">
-                                <span class="info-label">
-                                    <i class="fas fa-tag text-primary"></i> Ukuran
-                                </span>
-                                <span class="info-value">{{ $cheesecake->ukuran ?? '-' }}</span>
-                            </div>
+                            
                             
                             <div class="info-item">
                                 <span class="info-label">

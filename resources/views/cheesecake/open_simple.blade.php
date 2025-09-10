@@ -123,10 +123,7 @@
 
                             <!-- Info Produk -->
                             <div class="col-md-6">
-                                <div class="info-item d-flex justify-content-between">
-                                    <strong><i class="fas fa-tag text-primary me-2"></i>Ukuran:</strong>
-                                    <span>{{ $cheesecake->ukuran ?? '-' }}</span>
-                                </div>
+                                
 
                                 <div class="info-item d-flex justify-content-between">
                                     <strong><i class="fas fa-cubes text-info me-2"></i>Jumlah:</strong>

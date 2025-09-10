@@ -116,7 +116,7 @@
                                             </div>
                                             <div>
                                                 <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                    Total Produksi
+                                                    Produksi Hari Ini
                                                 </div>
                                                 <div class="h5 mb-0 font-weight-bold text-gray-800" id="total-produk">-</div>
                                             </div>
@@ -317,6 +317,53 @@
     </div>
 </div>
 
+<!-- Modal Group Details -->
+<div class="modal fade" id="group-details-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="mdi mdi-view-list"></i> Detail Group Produksi
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="group-summary" class="mb-4">
+                    <!-- Summary akan diisi dengan JavaScript -->
+                </div>
+                <div class="table-responsive">
+                    <table id="group-items-table" class="table table-striped table-bordered table-hover table-sm">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>No</th>
+                                <th>Kode Produksi</th>
+                                <th>Baker</th>
+                                <th>Jumlah</th>
+                                <th>Harga</th>
+                                <th>Total</th>
+                                <th>Dibuat</th>
+                                <th>Status</th>
+                                <th>Deskripsi</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data akan diisi dengan JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="mdi mdi-close"></i> Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @stop
 
 @section('javascript')
@@ -376,7 +423,9 @@ $(document).ready(function() {
             { data: 'kode_produk', name: 'kode_produk' },
             { data: 'nama', name: 'nama' },
             { data: 'baker_name', name: 'baker_name' },
-            { data: 'jumlah', name: 'jumlah' },
+            { data: 'jumlah_display', name: 'jumlah', render: function(data, type, row) {
+                return data; // Data sudah diformat di controller
+            }},
             { data: 'harga', name: 'harga' },
             { data: 'total', name: 'totalgetFormattedHargaAttribute' },
             { data: 'tanggal_dibuat', name: 'tanggal_dibuat' },
@@ -411,11 +460,13 @@ $(document).ready(function() {
         $.get("{{ route(auth()->user()->role.'_cheesecake_statistics') }}", function(response) {
             console.log('Response data:', response); // Debug log
             if (response.data) {
-                var totalProduk = response.data.length;
+                // Total produk menggunakan data hari ini
+                var totalProdukHariIni = response.today_production || 0;
                 var totalStok = 0;
                 var totalNilai = 0;
                 var expired = 0;
 
+                // Gunakan semua data untuk statistik lainnya
                 response.data.forEach(function(item) {
                     console.log('Processing item:', item); // Debug log
                     
@@ -436,7 +487,10 @@ $(document).ready(function() {
                 });
 
                 console.log('Final totalNilai:', totalNilai); // Debug log
-                $('#total-produk').text(totalProduk);
+                console.log('Total produk hari ini:', totalProdukHariIni); // Debug log
+                
+                // Update tampilan - Total Produk hanya hari ini
+                $('#total-produk').text(totalProdukHariIni + ' hari ini');
                 $('#total-stok').text(totalStok + ' pcs');
                 $('#total-nilai').text('Rp ' + (isNaN(totalNilai) ? 0 : new Intl.NumberFormat('id-ID').format(totalNilai)));
                 $('#expired').text(expired + ' produk');
@@ -520,14 +574,27 @@ $(document).ready(function() {
                     error: function(xhr) {
                         $('#tombol-simpan').html('<i class="mdi mdi-content-save"></i> Simpan');
                         var errors = xhr.responseJSON;
+                        
                         if (errors && errors.errors) {
                             var errorMessage = '';
                             $.each(errors.errors, function(key, value) {
                                 errorMessage += value[0] + '<br>';
                             });
                             alertify.error(errorMessage);
+                        } else if (errors && errors.message) {
+                            // Handle specific error messages from controller
+                            if (errors.message.includes('kode produk unik')) {
+                                alertify.error('Sistem sedang sibuk, silakan coba lagi dalam beberapa saat');
+                            } else {
+                                alertify.error(errors.message);
+                            }
                         } else {
-                            alertify.error('Terjadi kesalahan saat menyimpan data');
+                            // Handle server errors (500, etc)
+                            if (xhr.status === 500) {
+                                alertify.error('Terjadi kesalahan server, silakan coba lagi');
+                            } else {
+                                alertify.error('Terjadi kesalahan saat menyimpan data');
+                            }
                         }
                     }
                 });
@@ -621,6 +688,178 @@ $(document).ready(function() {
             };
             reader.readAsDataURL(file);
         }
+    });
+
+    // Handle view group details button
+    $(document).on('click', '.view-group', function() {
+        var groupId = $(this).data('group-id');
+        var url = "{{ route(auth()->user()->role.'_cheesecake_group_details', ':groupId') }}";
+        url = url.replace(':groupId', groupId);
+        
+        // Show loading
+        $('#group-summary').html('<div class="text-center"><i class="mdi mdi-loading mdi-spin"></i> Memuat data...</div>');
+        $('#group-items-table tbody').empty();
+        $('#group-details-modal').modal('show');
+        
+        $.get(url, function(response) {
+            if (response.status === 'success') {
+                // Display summary
+                var summary = response.summary;
+                var summaryHtml = `
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0">${summary.total_items}</h4>
+                                    <small class="text-muted">Total Items</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0">${summary.total_jumlah}</h4>
+                                    <small class="text-muted">Total Jumlah</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0">${summary.total_nilai}</h4>
+                                    <small class="text-muted">Total Nilai</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-light">
+                                <div class="card-body text-center">
+                                    <h4 class="mb-0">${summary.avg_harga}</h4>
+                                    <small class="text-muted">Harga Rata-rata</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <strong><i class="mdi mdi-information"></i> Info Group:</strong><br>
+                                Roti: <strong>${summary.nama_roti}</strong><br>
+                                Tanggal Produksi: <strong>${summary.tanggal_dibuat}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                $('#group-summary').html(summaryHtml);
+                
+                // Display table data
+                var tbody = '';
+                response.data.forEach(function(item, index) {
+                    var statusBadge = item.is_expired ? 
+                        '<span class="badge badge-danger">Expired</span>' : 
+                        '<span class="badge badge-success">' + item.hari_tersisa + ' hari</span>';
+                    
+                    tbody += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${item.kode_produk}</td>
+                            <td>${item.baker_name}</td>
+                            <td>${item.jumlah}</td>
+                            <td>${item.harga}</td>
+                            <td>${item.total}</td>
+                            <td>${item.created_at}</td>
+                            <td>${statusBadge}</td>
+                            <td><small>${item.deskripsi || 'Tidak ada deskripsi'}</small></td>
+                            <td class="text-center">${item.actions}</td>
+                        </tr>
+                    `;
+                });
+                $('#group-items-table tbody').html(tbody);
+            } else {
+                alertify.error('Gagal memuat detail group: ' + response.message);
+            }
+        }).fail(function() {
+            alertify.error('Terjadi kesalahan saat memuat detail group');
+            $('#group-details-modal').modal('hide');
+        });
+    });
+
+    // Handle delete item dari group details modal
+    $(document).on('click', '.delete-item', function() {
+        var itemId = $(this).data('id');
+        var confirmation = confirm('Yakin ingin menghapus item ini?');
+        
+        if (confirmation) {
+            var url = "{{ route(auth()->user()->role.'_cheesecakedelete', ':itemId') }}";
+            url = url.replace(':itemId', itemId);
+            
+            $.ajax({
+                url: url,
+                type: 'DELETE',
+                data: {
+                    "_token": "{{ csrf_token() }}"
+                },
+                success: function(response) {
+                    if (response.status === 'success') {
+                        alertify.success('Item berhasil dihapus');
+                        
+                        // Refresh main table
+                        table.draw(false);
+                        
+                        // Close and refresh group modal if needed
+                        $('#group-details-modal').modal('hide');
+                        
+                        // Update statistics
+                        updateStatistics();
+                    } else {
+                        alertify.error(response.message || 'Gagal menghapus item');
+                    }
+                },
+                error: function(xhr) {
+                    var errors = xhr.responseJSON;
+                    if (errors && errors.message) {
+                        alertify.error(errors.message);
+                    } else {
+                        alertify.error('Terjadi kesalahan saat menghapus item');
+                    }
+                }
+            });
+        }
+    });
+
+    // Handle edit item dari group details modal  
+    $(document).on('click', '.edit-post', function() {
+        // Close group modal first
+        $('#group-details-modal').modal('hide');
+        
+        // Trigger edit like normal
+        var data_id = $(this).data('id');
+        var url = "{{ route(auth()->user()->role.'_cheesecakeedit',':data_id') }}";
+        url = url.replace(':data_id', data_id);
+        
+        $.get(url, function(data) {
+            $('#modal-title-text').html("Edit Data Cheesecake");
+            $('#tombol-simpan').val("edit-post");
+            $('#tambah-edit-modal').modal('show');
+
+            $('#id').val(data.id);
+            $('#roti_id').val(data.roti_id);
+            $('#jumlah').val(data.jumlah);
+            $('#deskripsi').val(data.deskripsi);
+            $('#harga').val(data.harga);
+            $('#total').val(data.total);
+            $('#tanggal_dibuat').val(data.tanggal_dibuat);
+            
+            // Update total saat load edit
+            calculateTotal();
+            
+            // Handle existing image preview if any
+            if (data.gambar) {
+                $('#preview-container').html('<div class="mt-2"><img src="' + "{{ asset('') }}" + data.gambar + '" class="img-thumbnail" style="max-width: 200px;"><p class="text-muted mt-1">Gambar saat ini</p></div>');
+            }
+        }).fail(function() {
+            alertify.error('Gagal memuat data untuk edit');
+        });
     });
 
     // Initialize select2

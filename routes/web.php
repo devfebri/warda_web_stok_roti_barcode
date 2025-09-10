@@ -36,6 +36,7 @@ Route::prefix('pimpinan')->middleware(PimpinanMiddleware::class)->name('pimpinan
     // Dashboard
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('cheesecake_statistics');
+    Route::get('/cheesecake/group/{groupId}', [CheesecakeController::class, 'getGroupDetails'])->name('cheesecake_group_details');
     Route::post('/cheesecake/store', [CheesecakeController::class, 'store'])->name('cheesecakestore');
     Route::get('/cheesecake/{id}/edit', [CheesecakeController::class, 'edit'])->name('cheesecakeedit');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
@@ -62,6 +63,7 @@ Route::prefix('baker')->middleware(BakerMiddleware::class)->name('baker_')->grou
 
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('cheesecake_statistics');
+    Route::get('/cheesecake/group/{groupId}', [CheesecakeController::class, 'getGroupDetails'])->name('cheesecake_group_details');
     Route::post('/cheesecake/store', [CheesecakeController::class, 'store'])->name('cheesecakestore');
     Route::get('/cheesecake/{id}/edit', [CheesecakeController::class, 'edit'])->name('cheesecakeedit');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
@@ -73,6 +75,7 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
     // Dashboard dan view produk
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('cheesecake_statistics');
+    Route::get('/cheesecake/group/{groupId}', [CheesecakeController::class, 'getGroupDetails'])->name('cheesecake_group_details');
     Route::post('/cheesecake/store', [CheesecakeController::class, 'store'])->name('cheesecakestore');
     Route::get('/cheesecake/{id}/edit', [CheesecakeController::class, 'edit'])->name('cheesecakeedit');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
@@ -94,6 +97,7 @@ Route::prefix('kepalatoko')->middleware(KepalaTokoMiddleware::class)->name('kepa
 Route::prefix('karyawan')->middleware(KepalaTokoMiddleware::class)->name('karyawan_')->group(function () {
     Route::get('/cheesecake', [CheesecakeController::class, 'index'])->name('cheesecake');
     Route::get('/cheesecake/statistics', [CheesecakeController::class, 'statistics'])->name('cheesecake_statistics');
+    Route::get('/cheesecake/group/{groupId}', [CheesecakeController::class, 'getGroupDetails'])->name('cheesecake_group_details');
     Route::post('/cheesecake/store', [CheesecakeController::class, 'store'])->name('cheesecakestore');
     Route::get('/cheesecake/{id}/edit', [CheesecakeController::class, 'edit'])->name('cheesecakeedit');
     Route::get('/cheesecake/{id}/qrcode_show', [CheesecakeController::class, 'showQr'])->name('qrcode_show');
