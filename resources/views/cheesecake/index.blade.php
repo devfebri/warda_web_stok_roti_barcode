@@ -191,7 +191,7 @@
                                             <th>Total</th>
                                             <th>Tanggal Dibuat</th>
                                             <th>Status</th>
-                                            <th>Dibuat</th>
+                                            <th>Tanggal Expired</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -430,10 +430,10 @@ $(document).ready(function() {
             { data: 'total', name: 'totalgetFormattedHargaAttribute' },
             { data: 'tanggal_dibuat', name: 'tanggal_dibuat' },
             { data: 'status_expired', name: 'status_expired', orderable: false },
-            { data: 'created_at', name: 'created_at' },
+            { data: 'tanggal_expired', name: 'tanggal_expired' },
             { data: 'action', name: 'action', orderable: false, searchable: false }
         ],
-        order: [[8, 'desc']], // Sort by created_at descending
+        order: [[9, 'asc']], // Sort by tanggal_expired ascending (expired first)
         pageLength: 25,
         responsive: true,
         language: {

@@ -166,7 +166,7 @@ class CheesecakeController extends Controller
                 ->editColumn('tanggal_dibuat', function ($f) {
                     return $f['tanggal_dibuat_formatted'];
                 })
-                ->rawColumns(['action', 'status_expired', 'kode_produk', 'nama', 'jumlah_display', 'harga', 'total', 'created_at','baker_name'])
+                ->rawColumns(['action', 'status_expired', 'kode_produk', 'nama', 'jumlah_display', 'harga', 'total', 'created_at','tanggal_expired','baker_name'])
                 ->addIndexColumn()
                 ->make(true);
         }
@@ -489,6 +489,7 @@ class CheesecakeController extends Controller
                     'total_nilai' => $totalNilai,
                     'tanggal_dibuat' => $firstItem->tanggal_dibuat,
                     'tanggal_dibuat_formatted' => $firstItem->tanggal_dibuat ? $firstItem->tanggal_dibuat->format('d-m-Y') : 'Tidak ada tanggal',
+                    'tanggal_expired' => $firstItem->tanggal_dibuat ? $firstItem->tanggal_dibuat->addDays(3)->format('d-m-Y') : 'Tidak ada tanggal',
                     'created_at' => $latestItem->created_at,
                     'created_at_formatted' => $latestItem->created_at ? $latestItem->created_at->format('d-m-Y H:i') : 'Tidak ada tanggal',
                     'status' => $firstItem->status,
@@ -520,6 +521,7 @@ class CheesecakeController extends Controller
                     'total_nilai' => $item->total,
                     'tanggal_dibuat' => $item->tanggal_dibuat,
                     'tanggal_dibuat_formatted' => $item->tanggal_dibuat ? $item->tanggal_dibuat->format('d-m-Y') : 'Tidak ada tanggal',
+                    'tanggal_expired' => $item->tanggal_dibuat ? $item->tanggal_dibuat->addDays(3)->format('d-m-Y') : 'Tidak ada tanggal',
                     'created_at' => $item->created_at,
                     'created_at_formatted' => $item->created_at ? $item->created_at->format('d-m-Y H:i') : 'Tidak ada tanggal',
                     'status' => $item->status,
