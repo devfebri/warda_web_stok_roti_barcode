@@ -417,22 +417,22 @@ class CheesecakeController extends Controller
 
     public function open($id)
     {
-        try {
-            $cheesecake = Cheesecake::with('baker')->findOrFail($id);
+        $cheesecake = Cheesecake::findOrFail($id);
+        return view('cheesecake.open_debug', compact('cheesecake'));
+        // try {
             
-            // Check if baker can only view their own cheesecakes
-            if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {
-                abort(403, 'Anda tidak memiliki akses untuk melihat data ini');
-            }
+        //     // Check if baker can only view their own cheesecakes
+        //     if (Auth::user()->role == 'baker' && $cheesecake->baker_id != Auth::id()) {
+        //         abort(403, 'Anda tidak memiliki akses untuk melihat data ini');
+        //     }
             
-            return view('cheesecake.open_debug', compact('cheesecake'));
-        } catch (\Exception $e) {
-            // Log error untuk debugging
-            \Log::error('Error loading cheesecake detail: ' . $e->getMessage());
+        // } catch (\Exception $e) {
+        //     // Log error untuk debugging
+        //     \Log::error('Error loading cheesecake detail: ' . $e->getMessage());
             
-            // Return ke view dengan data kosong untuk menampilkan error state
-            return view('cheesecake.open_debug', ['cheesecake' => null]);
-        }
+        //     // Return ke view dengan data kosong untuk menampilkan error state
+        //     return view('cheesecake.open_debug', ['cheesecake' => null]);
+        // }
     }
 
     public function edit($id)
