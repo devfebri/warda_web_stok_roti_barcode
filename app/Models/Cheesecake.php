@@ -144,4 +144,6 @@ class Cheesecake extends Model
         
         return $kodeUsul;
     }
+
+    
 }

@@ -107,8 +107,8 @@
         @if(isset($cheesecake) && $cheesecake)
             <h2>{{ $cheesecake->nama }}</h2>
             
-            @if($cheesecake->gambar && file_exists(public_path($cheesecake->gambar)))
-                <img src="{{ asset($cheesecake->gambar) }}" alt="{{ $cheesecake->nama }}" class="image">
+            @if($cheesecake->roti->gambar && file_exists(public_path($cheesecake->roti->gambar)))
+                <img src="{{ asset($cheesecake->roti->gambar) }}" alt="{{ $cheesecake->roti->nama }}" class="image">
             @else
                 <div style="background: #e9ecef; padding: 40px; text-align: center; border-radius: 8px; margin: 20px 0;">
                     <p>Tidak ada gambar</p>
